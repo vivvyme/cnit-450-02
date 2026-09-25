@@ -1,0 +1,35 @@
+hostname ISP-L3S-04
+ip routing
+Ip domain-name sec2.local 
+Crypto key generate rsa modulus 1024 
+Login block-for 120 attempts 3 within 60 
+No ip domain lookup 
+Service password-encryption 
+Username admin secret enterprise
+Enable secret enterprise
+Line con 0 
+Password enterprise
+Login 
+Exec-timeout 5 
+Logging synchronous
+exit 
+Line vty 0 15 
+Password enterprise
+Login 
+Transport input ssh 
+Login local 
+Exec-timeout 5 
+Logging synchronous
+exit 
+vlan 10 
+name NA-BRIDGE
+exit
+interface g1/0/5
+switchport mode access
+switchport access vlan 10
+no shut
+exit
+interface vlan 10
+ip address 10.48.64.5 255.255.255.252
+no shut
+exit
