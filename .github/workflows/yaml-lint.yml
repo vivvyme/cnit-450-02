@@ -1,5 +1,6 @@
 name: YAML Lint
 
+
 on:
   push:
     branches: [ main, master ]
