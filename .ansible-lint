@@ -1,7 +1,9 @@
 ---
+
 exclude_paths:
   - ".github/"
 
 skip_list:
   - name[play]
   - name[casing]
+  - var-naming[no-role-prefix]
