@@ -1,6 +1,16 @@
 ---
-- name: Start Main Gatherfacts Block
+- name: Start Main LocalHost Gatherfacts
+  delegate_to: localhost
+  connection: local
   block:
-    - name: Start actual block for gatherfacts
+    - name: Discover TTY Devices
+      ansible.builtin.command: "sudo dmesg | grep tty"
+      become: true
+      become_method: sudo
+      become_user: ariane
+      ansible_become_pass: "{{ sudo_pass }}"
+      register: gf_discovered_tty
+
+    - name: Filter Output for TTY Devices Specifically
       ansible.builtin.debug:
-        msg: "We are on gatherfacts!"
+        msg: "{{ gf_discovered_tty.stdout_lines | select('search', 'tty', ignorecase=true) | list }}"
