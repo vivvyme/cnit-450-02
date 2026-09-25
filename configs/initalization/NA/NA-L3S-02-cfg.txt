@@ -1,0 +1,415 @@
+NA-L3S-02#sh run
+Building configuration...
+
+Current configuration : 10888 bytes
+!
+! Last configuration change at 01:13:10 UTC Fri Sep 25 2026
+!
+version 16.9
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+! Call-home is enabled by Smart-Licensing.
+service call-home
+no platform punt-keepalive disable-kernel-core
+!
+hostname NA-L3S-02
+!
+!
+vrf definition Mgmt-vrf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+enable secret 5 $1$knKp$3m8jZCatlkq2VF5d9o0xz0
+!
+no aaa new-model
+switch 1 provision ws-c3650-24ps
+!
+!
+!
+!
+call-home
+ ! If contact email address in call-home is configured as sch-smart-licensing@cisco.com
+ ! the email address configured in Cisco Smart License Portal will be used as contact email address to send SCH notifications.
+ contact-email-addr sch-smart-licensing@cisco.com
+ profile "CiscoTAC-1"
+  active
+  destination transport-method http
+  no destination transport-method email
+ip routing
+!
+!
+!
+!
+!
+no ip domain lookup
+ip domain name sec2.local
+!
+!
+!
+login block-for 120 attempts 3 within 60
+login on-success log
+!
+!
+!
+!
+!
+!
+!
+!
+crypto pki trustpoint SLA-TrustPoint
+ enrollment pkcs12
+ revocation-check crl
+!
+crypto pki trustpoint TP-self-signed-463304180
+ enrollment selfsigned
+ subject-name cn=IOS-Self-Signed-Certificate-463304180
+ revocation-check none
+ rsakeypair TP-self-signed-463304180
+!
+!
+crypto pki certificate chain SLA-TrustPoint
+ certificate ca 01
+  30820321 30820209 A0030201 02020101 300D0609 2A864886 F70D0101 0B050030
+  32310E30 0C060355 040A1305 43697363 6F312030 1E060355 04031317 43697363
+  6F204C69 63656E73 696E6720 526F6F74 20434130 1E170D31 33303533 30313934
+  3834375A 170D3338 30353330 31393438 34375A30 32310E30 0C060355 040A1305
+  43697363 6F312030 1E060355 04031317 43697363 6F204C69 63656E73 696E6720
+  526F6F74 20434130 82012230 0D06092A 864886F7 0D010101 05000382 010F0030
+  82010A02 82010100 A6BCBD96 131E05F7 145EA72C 2CD686E6 17222EA1 F1EFF64D
+  CBB4C798 212AA147 C655D8D7 9471380D 8711441E 1AAF071A 9CAE6388 8A38E520
+  1C394D78 462EF239 C659F715 B98C0A59 5BBB5CBD 0CFEBEA3 700A8BF7 D8F256EE
+  4AA4E80D DB6FD1C9 60B1FD18 FFC69C96 6FA68957 A2617DE7 104FDC5F EA2956AC
+  7390A3EB 2B5436AD C847A2C5 DAB553EB 69A9A535 58E9F3E3 C0BD23CF 58BD7188
+  68E69491 20F320E7 948E71D7 AE3BCC84 F10684C7 4BC8E00F 539BA42B 42C68BB7
+  C7479096 B4CB2D62 EA2F505D C7B062A4 6811D95B E8250FC4 5D5D5FB8 8F27D191
+  C55F0D76 61F9A4CD 3D992327 A8BB03BD 4E6D7069 7CBADF8B DF5F4368 95135E44
+  DFC7C6CF 04DD7FD1 02030100 01A34230 40300E06 03551D0F 0101FF04 04030201
+  06300F06 03551D13 0101FF04 05300301 01FF301D 0603551D 0E041604 1449DC85
+  4B3D31E5 1B3E6A17 606AF333 3D3B4C73 E8300D06 092A8648 86F70D01 010B0500
+  03820101 00507F24 D3932A66 86025D9F E838AE5C 6D4DF6B0 49631C78 240DA905
+  604EDCDE FF4FED2B 77FC460E CD636FDB DD44681E 3A5673AB 9093D3B1 6C9E3D8B
+  D98987BF E40CBD9E 1AECA0C2 2189BB5C 8FA85686 CD98B646 5575B146 8DFC66A8
+  467A3DF4 4D565700 6ADF0F0D CF835015 3C04FF7C 21E878AC 11BA9CD2 55A9232C
+  7CA7B7E6 C1AF74F6 152E99B7 B1FCF9BB E973DE7F 5BDDEB86 C71E3B49 1765308B
+  5FB0DA06 B92AFE7F 494E8A9E 07B85737 F3A58BE1 1A48A229 C37C1E69 39F08678
+  80DDCD16 D6BACECA EEBC7CF9 8428787B 35202CDC 60E4616A B623CDBD 230E3AFB
+  418616A9 4093E049 4D10AB75 27E86F73 932E35B5 8862FDAE 0275156F 719BB2F0
+  D697DF7F 28
+        quit
+crypto pki certificate chain TP-self-signed-463304180
+ certificate self-signed 01
+  3082032E 30820216 A0030201 02020101 300D0609 2A864886 F70D0101 05050030
+  30312E30 2C060355 04031325 494F532D 53656C66 2D536967 6E65642D 43657274
+  69666963 6174652D 34363333 30343138 30301E17 0D323630 39323530 30343134
+  365A170D 33303031 30313030 30303030 5A303031 2E302C06 03550403 1325494F
+  532D5365 6C662D53 69676E65 642D4365 72746966 69636174 652D3436 33333034
+  31383030 82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02
+  82010100 CA0AAEFE C76B48BF 8C828B8F 204AB04F E9460135 3FD17DC1 BE193809
+  3CA7B278 1FD29882 2529B55B 028C75CB 756482AB 83B7D88C 1BC35A72 CC3A1B49
+  12F11AA7 6AFC5DB6 DD626AB8 B29E6517 BAA76E7E 5AAE2A15 D4EC0530 57EF9811
+  EC7659C9 210DFF02 E434F1FF 02F1558B BFCAF5C6 C43733B3 94906DCE 6D90D20A
+  14080977 872016A5 F92DF0E6 5A2186A1 EB27089D EE027975 99E6215A 13D08538
+  19667F5C 60EB1133 83C85445 63B23239 47F1F5D3 B801A13F B16E422F C216C07F
+  2CCBD819 F49E1C8C 6928E418 34956CA3 315E3BCE 542198D9 662564CA EA6BE3BC
+  BEA5DC6E A1B47128 DC2B62DB 065CDA50 0128118B DC095EE6 086F075A 7DC97F0D
+  53DA1D1D 02030100 01A35330 51300F06 03551D13 0101FF04 05300301 01FF301F
+  0603551D 23041830 168014D8 397F9A7C 1B6B9398 9123CF47 7B1D1146 BBCB5930
+  1D060355 1D0E0416 0414D839 7F9A7C1B 6B939891 23CF477B 1D1146BB CB59300D
+  06092A86 4886F70D 01010505 00038201 010071D5 8A5E45F2 B96FA240 82FA0F35
+  3182C950 5B37EDBC AC7F5CC2 7E63DBDF 34CA6A7D B51A87B8 0D9613D2 2BFE1FBA
+  88B0068A E0E62514 7DFDB59F 1244064A 03AAF936 92C23D71 1DA6FD1D 2125C274
+  CC0F98D7 59B00D24 B3496631 0CCABA3D 159D6D4E 514C7519 61A63CC4 827F24E2
+  9B2157FD 84CECA81 38102CA1 B863537B 6D2BD934 1FCBB1ED 2F6977FD 1D58D604
+  1B76ABED 3A4FA026 0BB8E103 F70B1C26 E62FBE29 C398ABDE AAD0B337 F7566FAE
+  1986737F CC13AB85 23570A79 4142176B 24052A4C C525F55C 3BEB7B46 148732C0
+  073984BA AAA12136 2DBE8CBD 570659AC 2D4A4D7B E39CB524 7352E4CA B9B2DEC3
+  5473253A 25283834 B063A1F3 BE7DDDE4 E23C
+        quit
+!
+license boot level ipservicesk9
+!
+!
+diagnostic bootup level minimal
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+spanning-tree vlan 10,30,50,70 priority 28672
+spanning-tree vlan 20,40,60 priority 24576
+!
+!
+username admin secret 5 $1$hSKi$KBqKTzwjgqkA81CdY80Vo0
+!
+redundancy
+ mode sso
+!
+!
+!
+!
+!
+transceiver type all
+ monitoring
+!
+!
+class-map match-any system-cpp-police-topology-control
+  description Topology control
+class-map match-any system-cpp-police-sw-forward
+  description Sw forwarding, L2 LVX data, LOGGING
+class-map match-any system-cpp-default
+  description Inter FED, EWLC control, EWLC data
+class-map match-any system-cpp-police-sys-data
+  description Learning cache ovfl, High Rate App, Exception, EGR Exception, NFL SAMPLED DATA, RPF Failed
+class-map match-any system-cpp-police-punt-webauth
+  description Punt Webauth
+class-map match-any system-cpp-police-l2lvx-control
+  description L2 LVX control packets
+class-map match-any system-cpp-police-forus
+  description Forus Address resolution and Forus traffic
+class-map match-any system-cpp-police-multicast-end-station
+  description MCAST END STATION
+class-map match-any system-cpp-police-multicast
+  description Transit Traffic and MCAST Data
+class-map match-any system-cpp-police-l2-control
+  description L2 control
+class-map match-any system-cpp-police-dot1x-auth
+  description DOT1X Auth
+class-map match-any system-cpp-police-data
+  description ICMP redirect, ICMP_GEN and BROADCAST
+class-map match-any system-cpp-police-stackwise-virt-control
+  description Stackwise Virtual
+class-map match-any non-client-nrt-class
+class-map match-any system-cpp-police-routing-control
+  description Routing control and Low Latency
+class-map match-any system-cpp-police-protocol-snooping
+  description Protocol snooping
+class-map match-any system-cpp-police-dhcp-snooping
+  description DHCP snooping
+class-map match-any system-cpp-police-system-critical
+  description System Critical and Gold Pkt
+!
+policy-map system-cpp-policy
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ vrf forwarding Mgmt-vrf
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface GigabitEthernet1/0/1
+ no switchport
+ ip address 10.48.65.6 255.255.255.252
+!
+interface GigabitEthernet1/0/2
+ no switchport
+ ip address 10.48.65.22 255.255.255.252
+!
+interface GigabitEthernet1/0/3
+ switchport mode trunk
+!
+interface GigabitEthernet1/0/4
+ switchport mode trunk
+!
+interface GigabitEthernet1/0/5
+ shutdown
+!
+interface GigabitEthernet1/0/6
+ shutdown
+!
+interface GigabitEthernet1/0/7
+ shutdown
+!
+interface GigabitEthernet1/0/8
+ shutdown
+!
+interface GigabitEthernet1/0/9
+ switchport access vlan 10
+ shutdown
+!
+interface GigabitEthernet1/0/10
+ shutdown
+!
+interface GigabitEthernet1/0/11
+ shutdown
+!
+interface GigabitEthernet1/0/12
+ shutdown
+!
+interface GigabitEthernet1/0/13
+ shutdown
+!
+interface GigabitEthernet1/0/14
+ shutdown
+!
+interface GigabitEthernet1/0/15
+ shutdown
+!
+interface GigabitEthernet1/0/16
+ shutdown
+!
+interface GigabitEthernet1/0/17
+ shutdown
+!
+interface GigabitEthernet1/0/18
+ shutdown
+!
+interface GigabitEthernet1/0/19
+ shutdown
+!
+interface GigabitEthernet1/0/20
+ shutdown
+!
+interface GigabitEthernet1/0/21
+ shutdown
+!
+interface GigabitEthernet1/0/22
+ shutdown
+!
+interface GigabitEthernet1/0/23
+ shutdown
+!
+interface GigabitEthernet1/0/24
+ shutdown
+!
+interface GigabitEthernet1/1/1
+ shutdown
+!
+interface GigabitEthernet1/1/2
+ shutdown
+!
+interface GigabitEthernet1/1/3
+ shutdown
+!
+interface GigabitEthernet1/1/4
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface Vlan10
+ description MGMT
+ ip address 10.48.10.3 255.255.255.0
+ standby version 2
+ standby 10 ip 10.48.10.1
+ standby 10 preempt
+!
+interface Vlan20
+ description EXEC
+ ip address 10.48.20.3 255.255.255.0
+ standby version 2
+ standby 20 ip 10.48.20.1
+ standby 20 priority 150
+ standby 20 preempt
+!
+interface Vlan30
+ description HR
+ ip address 10.48.30.3 255.255.255.0
+ standby version 2
+ standby 30 ip 10.48.30.1
+ standby 30 preempt
+!
+interface Vlan40
+ description FINANCE
+ ip address 10.48.40.3 255.255.255.0
+ standby version 2
+ standby 40 ip 10.48.40.1
+ standby 40 priority 150
+ standby 40 preempt
+!
+interface Vlan50
+ description USERS
+ ip address 10.48.50.3 255.255.255.0
+ standby version 2
+ standby 50 ip 10.48.50.1
+ standby 50 preempt
+!
+interface Vlan60
+ description VOICE
+ ip address 10.48.60.3 255.255.255.0
+ standby version 2
+ standby 60 ip 10.48.60.1
+ standby 60 priority 150
+ standby 60 preempt
+!
+interface Vlan70
+ description GUESTS
+ ip address 10.48.70.3 255.255.255.0
+ standby version 2
+ standby 70 ip 10.48.70.1
+ standby 70 preempt
+!
+!
+router eigrp NA
+ !
+ address-family ipv4 unicast autonomous-system 10
+  !
+  topology base
+  exit-af-topology
+  network 10.48.10.0 0.0.0.255
+  network 10.48.20.0 0.0.0.255
+  network 10.48.30.0 0.0.0.255
+  network 10.48.40.0 0.0.0.255
+  network 10.48.50.0 0.0.0.255
+  network 10.48.60.0 0.0.0.255
+  network 10.48.65.4 0.0.0.3
+  network 10.48.65.20 0.0.0.3
+  network 10.48.70.0 0.0.0.255
+  eigrp router-id 10.48.10.3
+ exit-address-family
+!
+ip forward-protocol nd
+ip http server
+ip http authentication local
+ip http secure-server
+!
+!
+!
+!
+!
+!
+control-plane
+ service-policy input system-cpp-policy
+!
+banner motd ^CCAuthorized Access Only!!!^C
+!
+line con 0
+ exec-timeout 5 0
+ password 7 104B070D0005021905172F
+ logging synchronous
+ login
+ stopbits 1
+line aux 0
+ stopbits 1
+line vty 0 4
+ exec-timeout 5 0
+ password 7 14121C1F09163A392D3B36
+ login local
+ transport input ssh
+line vty 5 15
+ exec-timeout 5 0
+ password 7 14121C1F09163A392D3B36
+ login local
+ transport input ssh
+!
+!
+!
+!
+!
+!
+!
+end
