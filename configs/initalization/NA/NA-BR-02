@@ -27,10 +27,13 @@ router eigrp NA
  address-family ipv4 unicast autonomous-system 10
   !
   topology base
+   redistribute static
   exit-af-topology
   network 10.48.64.4 0.0.0.3
   network 10.48.65.4 0.0.0.3
  exit-address-family
+!
+ip route 0.0.0.0 0.0.0.0 GigabitEthernet0/0/0
 !
 banner motd ^CCAuthorized Access Only!!!^C
 !
