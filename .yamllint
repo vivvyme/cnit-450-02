@@ -1,0 +1,11 @@
+---
+extends: default
+
+# Global ignore patterns (gitignore-style)
+ignore: |
+  .github/
+
+rules:
+  line-length:
+    max: 120
+    allow-non-breakable-words: true

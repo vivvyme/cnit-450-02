@@ -1,0 +1,153 @@
+Building configuration...
+
+Current configuration : 3430 bytes
+!
+! Last configuration change at 01:45:46 UTC Mon Mar 1 1993
+!
+version 15.0
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+!
+hostname NA-L2S-02
+!
+boot-start-marker
+boot-end-marker
+!
+enable secret 5 $1$tMQx$dnhKSrZIxDzzjJzLxVRyw/
+!
+username admin secret 5 $1$ZFsQ$b0idM17U.ULb/LzBWRyfS0
+no aaa new-model
+system mtu routing 1500
+!
+!
+no ip domain-lookup
+ip domain-name sec2.local
+login block-for 120 attempts 3 within 60
+!
+!
+crypto pki trustpoint TP-self-signed-3769258880
+ enrollment selfsigned
+ subject-name cn=IOS-Self-Signed-Certificate-3769258880
+ revocation-check none
+ rsakeypair TP-self-signed-3769258880
+!
+!
+crypto pki certificate chain TP-self-signed-3769258880
+ certificate self-signed 01
+  3082022B 30820194 A0030201 02020101 300D0609 2A864886 F70D0101 05050030
+  31312F30 2D060355 04031326 494F532D 53656C66 2D536967 6E65642D 43657274
+  69666963 6174652D 33373639 32353838 3830301E 170D3933 30333031 30303330
+  31355A17 0D323030 31303130 30303030 305A3031 312F302D 06035504 03132649
+  4F532D53 656C662D 5369676E 65642D43 65727469 66696361 74652D33 37363932
+  35383838 3030819F 300D0609 2A864886 F70D0101 01050003 818D0030 81890281
+  8100AE9A DDE34DE8 14825CCB 81BB6C3A 823B43E7 99012CE3 01B756D4 AD415A95
+  83DB6ECF 2FBC06C8 21704292 A88C5A11 23B2FB9F 038809F2 99D70E3D 19F3788C
+  5DC88AAB CE432F0A CE396043 3EA77362 38E92A68 9DFFDA11 B4AC7075 8D447691
+  5D603EF5 200D1320 048739D4 3DECCD67 69E8DE63 10F78E72 919F5F67 588C1E8B
+  0C130203 010001A3 53305130 0F060355 1D130101 FF040530 030101FF 301F0603
+  551D2304 18301680 145C07B7 38D0DD14 03D724E4 EA0AD5D7 8290B401 7E301D06
+  03551D0E 04160414 5C07B738 D0DD1403 D724E4EA 0AD5D782 90B4017E 300D0609
+  2A864886 F70D0101 05050003 81810045 965A5554 4AE37053 8D2ED148 34CC7DD5
+  B7BA1691 CD6BF054 BACC5515 E856B498 8790559C 3FDC55C1 8DA16E0E 4411FB6F
+  7AEF599E 2794FF5A 8A5DD1FB E461B5C8 49493DF4 183B0B06 912BF546 23380871
+  79FD433D 3E3A6CC6 4CA50F8B 3F4D6626 109614B1 0E174FB5 152AC69D B2AEDF33
+  F82912A5 417A2BA4 E83E9A4F 19555C
+        quit
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+!
+vlan internal allocation policy ascending
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/1
+ switchport mode trunk
+!
+interface FastEthernet0/2
+ switchport mode trunk
+!
+interface FastEthernet0/3
+!
+interface FastEthernet0/4
+!
+interface FastEthernet0/5
+!
+interface FastEthernet0/6
+!
+interface FastEthernet0/7
+!
+interface FastEthernet0/8
+!
+interface FastEthernet0/9
+!
+interface FastEthernet0/10
+!
+interface FastEthernet0/11
+!
+interface FastEthernet0/12
+!
+interface FastEthernet0/13
+!
+interface FastEthernet0/14
+!
+interface FastEthernet0/15
+!
+interface FastEthernet0/16
+!
+interface FastEthernet0/17
+!
+interface FastEthernet0/18
+!
+interface FastEthernet0/19
+!
+interface FastEthernet0/20
+!
+interface FastEthernet0/21
+!
+interface FastEthernet0/22
+!
+interface FastEthernet0/23
+!
+interface FastEthernet0/24
+!
+interface GigabitEthernet0/1
+!
+interface GigabitEthernet0/2
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip http server
+ip http secure-server
+!
+!
+banner motd ^CAuthorized Access Only!!!^C
+!
+line con 0
+ exec-timeout 5 0
+ password 7 121C0B0317191C16233821
+ logging synchronous
+ login
+line vty 0 4
+ exec-timeout 5 0
+ password 7 0949401D1C170700021F01
+ login local
+ transport input ssh
+line vty 5 15
+ exec-timeout 5 0
+ password 7 0949401D1C170700021F01
+ login local
+ transport input ssh
+!
+end
