@@ -37,3 +37,4 @@ router bgp 64512
 bgp router-id 4.4.4.4
 neighbor 10.48.64.6 remote-as 65510
 network 10.48.64.4 mask 255.255.255.252
+ip route 0.0.0.0 0.0.0.0 10.48.64.6
