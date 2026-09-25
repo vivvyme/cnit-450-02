@@ -8,7 +8,6 @@
       become: true
       become_method: sudo
       become_user: ariane
-      ansible_become_pass: "{{ sudo_pass }}"
       register: gf_discovered_tty
 
     - name: Filter Output for TTY Devices Specifically
