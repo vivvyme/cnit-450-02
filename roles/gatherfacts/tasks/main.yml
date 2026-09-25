@@ -1,1 +1,6 @@
 ---
+- name: Start Main Gatherfacts Block
+  block:
+    - name: Start actual block for gatherfacts
+      ansible.builtin.debug:
+        msg: "We are on gatherfacts!"

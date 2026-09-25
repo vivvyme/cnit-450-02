@@ -1,1 +1,7 @@
 ---
+- name: Main Orchestrator
+  hosts: all
+  gatherfacts: false
+  roles:
+    - gatherfacts
+    - config
