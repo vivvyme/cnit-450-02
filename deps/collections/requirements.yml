@@ -1,0 +1,5 @@
+---
+# Define Ansible Collections dependencies
+collections:
+  - name: community.general
+  - name: cisco.ios
