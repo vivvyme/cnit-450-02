@@ -1,4 +1,4 @@
-hostname ISP-L3S-04
+hostname ISP-L3S-01
 ip routing
 Ip domain-name sec2.local 
 Crypto key generate rsa modulus 1024 
@@ -18,7 +18,7 @@ Password enterprise
 Login 
 Transport input ssh 
 Login local 
-Exec-timeout 5 
+Exec-timeout 5
 Logging synchronous
 exit 
 vlan 10 
@@ -30,24 +30,25 @@ switchport access vlan 10
 no shut
 exit
 interface vlan 10
-ip address 10.48.64.5 255.255.255.252
+ip address 10.48.64.1 255.255.255.252
 no shut
 exit
 router bgp 64512
-bgp router-id 4.4.4.4
-neighbor 10.48.64.6
-network 10.48.64.4 mask 255.255.255.252
+bgp router-id 3.3.3.3
+neighbor 10.48.64.2 remote-as 65510
+<<<<<<< HEAD:configs/initalization/ISP/ISP-L3S-01.txt
+network 10.48.54.0 mask 255.255.255.252
 !
 router eigrp 1
 network 10.48.62.0
-network 10.48.64.4
+network 10.48.64.0
 redistribute static
 exit
 vlan 99
 name MGMT
 exit
 interface vlan 99
-ip address 10.48.62.4 255.255.255.248
+ip address 10.48.62.1 255.255.255.248
 exit
 int g1/0/1
 switchport mode access
@@ -62,4 +63,8 @@ switchport mode access
 switchport access vlan 99
 exit
 !
-ip route 10.48.65.0 255.255.255.0 10.48.64.6
+ip route 10.48.65.0 255.255.255.0 10.48.64.2
+=======
+network 10.48.64.0 mask 255.255.255.252
+ip route 0.0.0.0 0.0.0.0 10.48.64.2
+>>>>>>> main:configs/ISP/ISP-L3S-01.txt

@@ -1,0 +1,388 @@
+Building configuration...
+
+Current configuration : 8744 bytes
+!
+! Last configuration change at 01:32:02 UTC Fri Sep 25 2026
+!
+version 16.9
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+no platform punt-keepalive disable-kernel-core
+!
+hostname NA-L3S-01
+!
+!
+vrf definition Mgmt-vrf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+enable secret 5 $1$567.$aNVvDxPK/zjqKhIgmq26/1
+!
+no aaa new-model
+switch 1 provision ws-c3650-24ps
+!
+!
+!
+!
+ip routing
+!
+!
+!
+!
+!
+no ip domain lookup
+ip domain name sec2.local
+!
+!
+!
+login block-for 120 attempts 3 within 60
+login on-success log
+!
+!
+!
+!
+!
+!
+!
+!
+crypto pki trustpoint TP-self-signed-660283999
+ enrollment selfsigned
+ subject-name cn=IOS-Self-Signed-Certificate-660283999
+ revocation-check none
+ rsakeypair TP-self-signed-660283999
+!
+!
+crypto pki certificate chain TP-self-signed-660283999
+ certificate self-signed 01
+  3082032E 30820216 A0030201 02020101 300D0609 2A864886 F70D0101 05050030
+  30312E30 2C060355 04031325 494F532D 53656C66 2D536967 6E65642D 43657274
+  69666963 6174652D 36363032 38333939 39301E17 0D323630 39323530 30333935
+  355A170D 33303031 30313030 30303030 5A303031 2E302C06 03550403 1325494F
+  532D5365 6C662D53 69676E65 642D4365 72746966 69636174 652D3636 30323833
+  39393930 82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02
+  82010100 9F85D274 56B58CFF EF0C50BA 8AF42831 CDE0601C 6206B296 F0D0FD41
+  49D28CF2 8205291F 926CD236 D343529F FDCB8C95 EDB4B97E 47B262FF 83EB59D0
+  7C3CB81C 799F3D0A B0941102 178BA00F 03DF924D 49CF1AEB 9DBF759A 8BD779C9
+  A013881F 9CD4B65B 4F2239AE CA2D4FF1 6F834452 23917806 A8D9D440 E7D8BC29
+  A9D6D640 6C59B535 313F67A7 C98B9DE5 00F62A52 2ED877ED CF25398E BC4BB7C1
+  D57D003A 9395D49E 6B29696D 219AD9C6 65AD4A77 EA1E4FC8 958FEDF6 39882632
+  34266970 9D91A393 C5232430 4984E878 23E0A20B E1E1B01C 7B24C4DC F70A2B12
+  202A5716 CEB0A23E 59DBBDDF 986E84D4 81FE9610 2613F767 FF88E22F B96773F9
+  4A9FC2D1 02030100 01A35330 51300F06 03551D13 0101FF04 05300301 01FF301F
+  0603551D 23041830 168014A6 092A9B5E 0BB2289D 38E83821 7E015629 CC532E30
+  1D060355 1D0E0416 0414A609 2A9B5E0B B2289D38 E838217E 015629CC 532E300D
+  06092A86 4886F70D 01010505 00038201 010084D5 6583E47C E0EB906A 4E9A4A98
+  130CC159 191A3103 6D76536F AA9DCB61 36810ABF 59CCE03B 1E2CD779 77ED2AD0
+  766836D5 67AD67AE AC4A189B D7E467F5 EE664F37 6C80F46C C05F5AE2 384DDC34
+  A825EA2D 05DD8334 5A9A0057 F2D974D6 015342AF 58B99249 A0644591 C2469508
+  3E77E830 8C8541BF D7F4C695 4B02ABE3 60371401 F6961DFB 28063C8F 9C85570D
+  11493575 C6CE3929 BC23F6C8 7B28495A 85499EA6 A03DB6D0 C07D9C21 0FAF4571
+  ACD3697B 7F5C9258 F8398AFF CB14E8E1 1CB1049C B5241962 7ED40A8E 434B1B47
+  428F50EA 20A67C44 3F678744 FD61F5B5 4A50821E 0CD1DE92 672737AF 3599A55E
+  D2F6C8D1 80CE3EAC 5410148B AEC6C8FD AA40
+        quit
+!
+license boot level ipservicesk9
+!
+!
+diagnostic bootup level minimal
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+spanning-tree vlan 10,30,50,70 priority 24576
+spanning-tree vlan 20,40,60 priority 28672
+!
+!
+username admin secret 5 $1$E9Op$6iOkU/uq3LK8xMyDnV5DU.
+!
+redundancy
+ mode sso
+!
+!
+!
+!
+!
+transceiver type all
+ monitoring
+!
+!
+class-map match-any system-cpp-police-topology-control
+  description Topology control
+class-map match-any system-cpp-police-sw-forward
+  description Sw forwarding, L2 LVX data, LOGGING
+class-map match-any system-cpp-default
+  description Inter FED, EWLC control, EWLC data
+class-map match-any system-cpp-police-sys-data
+  description Learning cache ovfl, High Rate App, Exception, EGR Exception, NFL SAMPLED DATA, RPF Failed
+class-map match-any system-cpp-police-punt-webauth
+  description Punt Webauth
+class-map match-any system-cpp-police-l2lvx-control
+  description L2 LVX control packets
+class-map match-any system-cpp-police-forus
+  description Forus Address resolution and Forus traffic
+class-map match-any system-cpp-police-multicast-end-station
+  description MCAST END STATION
+class-map match-any system-cpp-police-multicast
+  description Transit Traffic and MCAST Data
+class-map match-any system-cpp-police-l2-control
+  description L2 control
+class-map match-any system-cpp-police-dot1x-auth
+  description DOT1X Auth
+class-map match-any system-cpp-police-data
+  description ICMP redirect, ICMP_GEN and BROADCAST
+class-map match-any system-cpp-police-stackwise-virt-control
+  description Stackwise Virtual
+class-map match-any non-client-nrt-class
+class-map match-any system-cpp-police-routing-control
+  description Routing control and Low Latency
+class-map match-any system-cpp-police-protocol-snooping
+  description Protocol snooping
+class-map match-any system-cpp-police-dhcp-snooping
+  description DHCP snooping
+class-map match-any system-cpp-police-system-critical
+  description System Critical and Gold Pkt
+!
+policy-map system-cpp-policy
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ vrf forwarding Mgmt-vrf
+ no ip address
+ negotiation auto
+!
+interface GigabitEthernet1/0/1
+ no switchport
+ ip address 10.48.65.2 255.255.255.252
+!
+interface GigabitEthernet1/0/2
+ no switchport
+ ip address 10.48.65.21 255.255.255.252
+!
+interface GigabitEthernet1/0/3
+ switchport mode trunk
+!
+interface GigabitEthernet1/0/4
+ switchport mode trunk
+!
+interface GigabitEthernet1/0/5
+ no switchport
+ ip address 10.48.65.17 255.255.255.252
+!
+interface GigabitEthernet1/0/6
+ shutdown
+!
+interface GigabitEthernet1/0/7
+ shutdown
+!
+interface GigabitEthernet1/0/8
+ shutdown
+!
+interface GigabitEthernet1/0/9
+ shutdown
+!
+interface GigabitEthernet1/0/10
+ shutdown
+!
+interface GigabitEthernet1/0/11
+ shutdown
+!
+interface GigabitEthernet1/0/12
+ shutdown
+!
+interface GigabitEthernet1/0/13
+ shutdown
+!
+interface GigabitEthernet1/0/14
+ shutdown
+!
+interface GigabitEthernet1/0/15
+ shutdown
+!
+interface GigabitEthernet1/0/16
+ shutdown
+!
+interface GigabitEthernet1/0/17
+ shutdown
+!
+interface GigabitEthernet1/0/18
+ shutdown
+!
+interface GigabitEthernet1/0/19
+ shutdown
+!
+interface GigabitEthernet1/0/20
+ shutdown
+!
+interface GigabitEthernet1/0/21
+ shutdown
+!
+interface GigabitEthernet1/0/22
+ shutdown
+!
+interface GigabitEthernet1/0/23
+ shutdown
+!
+interface GigabitEthernet1/0/24
+ shutdown
+!
+interface GigabitEthernet1/1/1
+ shutdown
+!
+interface GigabitEthernet1/1/2
+ shutdown
+!
+interface GigabitEthernet1/1/3
+ shutdown
+!
+interface GigabitEthernet1/1/4
+ shutdown
+!
+interface Vlan1
+ no ip address
+!
+interface Vlan10
+ description MGMT
+ ip address 10.48.10.2 255.255.255.0
+ standby version 2
+ standby 10 ip 10.48.10.1
+ standby 10 priority 150
+ standby 10 preempt
+!
+interface Vlan20
+ description EXEC
+ ip address 10.48.20.2 255.255.255.0
+ standby version 2
+ standby 20 ip 10.48.20.1
+ standby 20 preempt
+!
+interface Vlan30
+ description HR
+ ip address 10.48.30.2 255.255.255.0
+ standby version 2
+ standby 30 ip 10.48.30.1
+ standby 30 priority 150
+ standby 30 preempt
+!
+interface Vlan40
+ description FINANCE
+ ip address 10.48.40.2 255.255.255.0
+ standby version 2
+ standby 40 ip 10.48.40.1
+ standby 40 preempt
+!
+interface Vlan50
+ description USERS
+ ip address 10.48.50.2 255.255.255.0
+ standby version 2
+ standby 50 ip 10.48.50.1
+ standby 50 priority 150
+ standby 50 preempt
+!
+interface Vlan60
+ description VOICE
+ ip address 10.48.60.2 255.255.255.0
+ standby version 2
+ standby 60 ip 10.48.60.1
+ standby 60 preempt
+!
+interface Vlan70
+ description GUESTS
+ ip address 10.48.70.2 255.255.255.0
+ standby version 2
+ standby 70 ip 10.48.70.1
+ standby 70 preempt
+!
+!
+router eigrp NA
+ !
+ address-family ipv4 unicast autonomous-system 10
+  !
+  af-interface default
+   passive-interface
+  exit-af-interface
+  !
+  af-interface GigabitEthernet1/0/1
+   no passive-interface
+  exit-af-interface
+  !
+  af-interface GigabitEthernet1/0/5
+   no passive-interface
+  exit-af-interface
+  !
+  af-interface GigabitEthernet1/0/2
+   no passive-interface
+  exit-af-interface
+  !
+  topology base
+  exit-af-topology
+  network 10.48.10.0 0.0.0.255
+  network 10.48.20.0 0.0.0.255
+  network 10.48.30.0 0.0.0.255
+  network 10.48.40.0 0.0.0.255
+  network 10.48.50.0 0.0.0.255
+  network 10.48.60.0 0.0.0.255
+  network 10.48.65.0 0.0.0.3
+  network 10.48.65.16 0.0.0.3
+  network 10.48.65.20 0.0.0.3
+  network 10.48.70.0 0.0.0.255
+  eigrp router-id 10.48.10.2
+ exit-address-family
+!
+!
+router eigrp AN
+!
+ip forward-protocol nd
+ip http server
+ip http secure-server
+!
+!
+!
+!
+!
+!
+control-plane
+ service-policy input system-cpp-policy
+!
+banner motd ^CCAuthorized Access Only!!!^C
+!
+line con 0
+ exec-timeout 5 0
+ password 7 00011D1201491B14063249
+ logging synchronous
+ login
+ stopbits 1
+line aux 0
+ stopbits 1
+line vty 0 4
+ exec-timeout 5 0
+ password 7 00011D1201491B14063249
+ login local
+ transport input ssh
+line vty 5 15
+ exec-timeout 5 0
+ password 7 00011D1201491B14063249
+ login local
+ transport input ssh
+!
+!
+!
+!
+!
+!
+!
+end
