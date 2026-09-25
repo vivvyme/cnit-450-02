@@ -1,0 +1,57 @@
+hostname NA-BR-02
+!
+enable secret 5 $1$CRd8$i9KClTCT.f7cKAjgBSq2G1
+!
+no aaa new-model
+!
+no ip domain lookup
+ip domain name sec2.local
+!
+!
+!
+login block-for 120 attempts 3 within 60
+!
+!
+username admin secret 5 $1$.ose$30pvG3eUvXDhP8uWIAZMa.
+!
+interface GigabitEthernet0/0/0
+ ip address 10.48.64.6 255.255.255.252
+ negotiation auto
+!
+interface GigabitEthernet0/0/1
+ ip address 10.48.65.5 255.255.255.252
+ negotiation auto
+!
+router eigrp NA
+ !
+ address-family ipv4 unicast autonomous-system 10
+  !
+  topology base
+  exit-af-topology
+  network 10.48.64.4 0.0.0.3
+  network 10.48.65.4 0.0.0.3
+ exit-address-family
+!
+banner motd ^CCAuthorized Access Only!!!^C
+!
+line con 0
+ exec-timeout 5 0
+ password 7 0949401D1C170700021F01
+ logging synchronous
+ login
+ transport input none
+ stopbits 1
+line aux 0
+ stopbits 1
+line vty 0 4
+ exec-timeout 5 0
+ password 7 0949401D1C170700021F01
+ login local
+ transport input ssh
+line vty 5 15
+ exec-timeout 5 0
+ password 7 0949401D1C170700021F01
+ login local
+ transport input ssh
+!
+end

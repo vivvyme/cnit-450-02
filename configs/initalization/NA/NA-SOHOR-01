@@ -1,0 +1,59 @@
+Author: Tram Nguyen 9/18/26 3:08PM 
+
+Base Configuration:
+Hostname  NA-SOHOR-01
+Ip domain-name sec2.local
+Crypto key generate rsa modulus 1024
+Login block-for 120 attempts 3 within 60
+No ip domain lookup
+Service password-encryption
+Username admin secret enterprise
+Enable secret enterprise
+Line con 0
+Password enterprise
+login
+Exec-timeout 5
+Logging synchronous
+exit
+Line vty 0 15
+Password enterprise
+Login
+Transport input ssh
+Login local
+Exec-timeout 5
+Exit
+interface Serial0/1/0
+ip address 10.48.65.10 255.255.255.252
+interface Serial0/1/1
+ip address 10.48.65.14 255.255.255.252
+
+Routing EIGRP: 
+router eigrp NA
+address-family ipv4 unicast autonomous-system 10
+  topology base
+  exit-af-topology
+  network 10.48.65.8 0.0.0.3
+  network 10.48.65.12 0.0.0.3
+  network 172.20.1.0 0.0.0.3
+exit-address-family
+
+GRE over IPSEC tunnel:
+crypto isakmp policy 1
+encr aes 256
+hash sha256
+authentication pre-share
+crypto isakmp key key123 address 10.48.65.9
+exit
+crypto ipsec transform-set NA-SOHO-IPSEC esp-aes 256 esp-sha-hmac
+mode transport
+exit
+crypto ipsec profile NA-SOHO-IPSEC
+set transform-set NA-SOHO-IPSEC
+exit
+interface Tunnel10
+ip address 172.20.1.2 255.255.255.252
+tunnel source Serial0/1/0
+tunnel destination 10.48.65.9
+tunnel protection ipsec profile NA-SOHO-IPSEC
+
+ 
