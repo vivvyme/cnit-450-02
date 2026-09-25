@@ -6,9 +6,8 @@
     - name: Discover TTY Devices
       ansible.builtin.command: "sudo dmesg | grep tty"
       become: true
-      become_method: sudo
-      become_user: ariane
       register: gf_discovered_tty
+      changed_when: false
 
     - name: Filter Output for TTY Devices Specifically
       ansible.builtin.debug:
