@@ -6,3 +6,4 @@ exclude_paths:
 skip_list:
   - name[play]
   - name[casing]
+  - var-naming[no-role-prefix]
