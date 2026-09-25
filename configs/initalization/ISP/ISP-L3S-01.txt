@@ -33,3 +33,7 @@ interface vlan 10
 ip address 10.48.64.1 255.255.255.252
 no shut
 exit
+router bgp 64512
+bgp router-id 3.3.3.3
+neighbor 10.48.64.2 remote-as 65510
+network 10.48.54.0 mask 255.255.255.252
