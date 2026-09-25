@@ -1,4 +1,8 @@
-# .ansible-lint
+---
+
+exclude_paths:
+  - ".github/"
+
 skip_list:
   - name[play]
   - name[casing]
