@@ -1,0 +1,21 @@
+Hostname ISP-L2S-01
+Ip domain-name sec2.local 
+Crypto key generate rsa modulus 1024 
+Login block-for 120 attempts 3 within 60 
+No ip domain lookup 
+Service password-encryption 
+Username admin secret enterprise 
+Enable secret enterprise 
+Line con 0 
+Password enterprise 
+login 
+Exec-timeout 5 
+Logging synchronous 
+exit 
+Line vty 0 15 
+Password enterprise 
+Login 
+Transport input ssh 
+Login local 
+Exec-timeout 5 
+exit

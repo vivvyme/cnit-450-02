@@ -1,21 +1,45 @@
 Hostname ISP-L3S-02
+ip routing
 Ip domain-name sec2.local 
 Crypto key generate rsa modulus 1024 
 Login block-for 120 attempts 3 within 60 
 No ip domain lookup 
 Service password-encryption 
-Username admin secret enterprise 
-Enable secret enterprise 
+Username admin secret enterprise
+Enable secret enterprise
 Line con 0 
-Password enterprise 
+Password enterprise
 login 
 Exec-timeout 5 
 Logging synchronous 
 exit 
 Line vty 0 15 
-Password enterprise 
+Password enterprise
 Login 
 Transport input ssh 
 Login local 
 Exec-timeout 5 
+Logging synchronous
+exit
+!
+router eigrp 1
+network 10.48.62.0
+exit
+vlan 99
+name MGMT
+exit
+interface vlan 99
+ip address 10.48.62.2 255.255.255.248
+exit
+int g1/0/1
+switchport mode access
+switchport access vlan 99
+exit
+int g1/0/2
+switchport mode access
+switchport access vlan 99
+exit
+int g1/0/3
+switchport mode access
+switchport access vlan 99
 exit

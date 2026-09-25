@@ -1,4 +1,5 @@
 Hostname  
+ip routing
 Ip domain-name sec2.local
 Crypto key generate rsa modulus 1024 
 Login block-for 120 attempts 3 within 60
