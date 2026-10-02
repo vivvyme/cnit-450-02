@@ -4,6 +4,7 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
+
 REPO = Path(__file__).resolve().parent.parent
 CONFIG_DIR = REPO / "configs"
 SNAPSHOT_NAME = "cnit-450-02"
@@ -55,15 +56,15 @@ def parse_report(session):
         nodes = ", ".join(str(n) for n in nodes) if nodes is not None and len(nodes) else "(no device)"
         if state == "PASSED":
             ok += 1
-            print(f"  {color('OK     ', GREEN)} {filename:<28} -> {nodes}")
+            print(f"  {color('OK', GREEN)} {filename:<28} -> {nodes}")
         elif state == "PARTIALLY_UNRECOGNIZED":
             partial += 1
             print(f"  {color('PARTIAL', YELLOW)} {filename:<28} -> {nodes}")
         else:
             bad += 1
-            print(f"  {color('FAIL   ', RED)} {filename:<28} -> {state}")
+            print(f"  {color('FAIL', RED)} {filename:<28} -> {state}")
 
-    print(f"\n  {ok} parsed, {partial} partially, {bad} failed, {ok + partial + bad} files total.")
+    print(f"\n {ok} parsed, {partial} partially, {bad} failed, {ok + partial + bad} files total.")
     if partial or bad:
         print(color("\n PARTIAL and FAIL are expected for the command scripts.", DIM))
     return ok + partial, bad
@@ -72,7 +73,7 @@ def parse_report(session):
 def show(session, title, question, note=None):
     heading(title)
     if note:
-        print(color(f"  {note}\n", DIM))
+        print(color(f"{note}\n", DIM))
     try:
         frame = question.answer().frame()
     except Exception as err:
