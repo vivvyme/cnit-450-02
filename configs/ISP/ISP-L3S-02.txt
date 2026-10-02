@@ -32,14 +32,14 @@ interface vlan 99
 ip address 10.48.62.2 255.255.255.248
 exit
 int g1/0/1
-switchport mode access
-switchport access vlan 99
+switchport mode trunk
+switchport trunk allowed vlan 99
 exit
 int g1/0/2
-switchport mode access
-switchport access vlan 99
+switchport mode trunk
+switchport trunk allowed vlan 99,30
 exit
 int g1/0/3
-switchport mode access
-switchport access vlan 99
+switchport mode trunk
+switchport trunk allowed vlan 99
 exit
