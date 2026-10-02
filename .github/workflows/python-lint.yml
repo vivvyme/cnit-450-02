@@ -1,0 +1,26 @@
+name: Python Lint
+
+on:
+  push:
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  lint:
+    name: Run Ruff
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff
+        run: ruff check --line-length 120 scripts/

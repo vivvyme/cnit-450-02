@@ -1,0 +1,23 @@
+name: Config Check
+
+on:
+  push:
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  check:
+    name: Check Device Configs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Check configs for merge conflicts and duplicates
+        run: python scripts/push_configs.py --check
