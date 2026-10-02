@@ -130,9 +130,11 @@ def check_configs():
 
     def report(level, path, line, message):
         counts[level] += 1
+        where = f"{path.relative_to(REPO)}:{line}"
         if in_ci:
-            print(f"::{level} file={path.relative_to(REPO)},line={line}::{message}")
-        print(f"{level.upper():<8}{path.relative_to(REPO)}:{line}: {message}")
+            print(f"::{level} file={path.relative_to(REPO)},line={line}::{where}: {message}")
+        else:
+            print(f"{level.upper():<8}{where}: {message}")
 
     by_name = {}
     for path in sorted(CONFIG_DIR.rglob("*")):
