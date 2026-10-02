@@ -37,7 +37,6 @@ router bgp 64512
 bgp router-id 4.4.4.4
 neighbor 10.48.64.6 remote-as 65510
 network 10.48.64.4 mask 255.255.255.252
-<<<<<<< HEAD:configs/initalization/ISP/ISP-L3S-04.txt
 !
 router eigrp 1
 network 10.48.62.0
@@ -64,6 +63,4 @@ switchport access vlan 99
 exit
 !
 ip route 10.48.65.0 255.255.255.0 10.48.64.6
-=======
 ip route 0.0.0.0 0.0.0.0 10.48.64.6
->>>>>>> main:configs/ISP/ISP-L3S-04.txt
