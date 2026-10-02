@@ -1,7 +1,0 @@
----
-- name: Main Orchestrator
-  gather_facts: false
-  hosts: all
-  roles:
-    - gatherfacts
-    - config

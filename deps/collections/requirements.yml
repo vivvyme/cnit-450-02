@@ -1,7 +1,0 @@
----
-# Define Ansible Collections dependencies
-collections:
-  - name: community.general
-  - name: cisco.ios
-  - name: microsoft.ad
-  - name: ansible.windows
