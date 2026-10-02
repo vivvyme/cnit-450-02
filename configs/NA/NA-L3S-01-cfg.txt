@@ -304,6 +304,7 @@ interface Vlan70
  description GUESTS
  ip address 10.48.70.2 255.255.255.0
  standby version 2
+ standby 70 priority 150
  standby 70 ip 10.48.70.1
  standby 70 preempt
 !
