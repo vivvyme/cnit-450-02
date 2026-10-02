@@ -1,6 +1,5 @@
 Author: Tram Nguyen 9/18/26 3:08PM 
 
-Base Configuration:
 Hostname  NA-SOHOR-01
 Ip domain-name sec2.local
 Crypto key generate rsa modulus 1024
@@ -27,7 +26,6 @@ ip address 10.48.65.10 255.255.255.252
 interface Serial0/1/1
 ip address 10.48.65.14 255.255.255.252
 
-Routing EIGRP: 
 router eigrp NA
 address-family ipv4 unicast autonomous-system 10
   topology base
@@ -37,13 +35,11 @@ address-family ipv4 unicast autonomous-system 10
   network 172.20.1.0 0.0.0.3
 exit-address-family
 
-GRE over IPSEC tunnel:
 crypto isakmp policy 1
 encr aes 256
 hash sha256
 authentication pre-share
 crypto isakmp key key123 address 10.48.65.9
-exit
 crypto ipsec transform-set NA-SOHO-IPSEC esp-aes 256 esp-sha-hmac
 mode transport
 exit
