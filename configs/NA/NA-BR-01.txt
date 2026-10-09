@@ -1,4 +1,22 @@
+version 16.6
+service timestamps debug datetime msec
+service timestamps log datetime msec
+platform qfp utilization monitor load 80
+no platform punt-keepalive disable-kernel-core
+!
 hostname NA-BR-01
+!
+boot-start-marker
+boot-end-marker
+!
+!
+vrf definition Mgmt-intf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
 !
 enable secret 5 $1$QTrH$pU0pZAY43teH4uyWIEGpt.
 !
@@ -6,20 +24,106 @@ no aaa new-model
 !
 no ip domain lookup
 ip domain name sec2.local
+crypto key generate rsa modulus 2048
 !
 !
 !
 login block-for 120 attempts 3 within 60
 !
+!
+!
+!
+!
+!
+!
+subscriber templating
+!
+!
+!
+!
+!
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+license udi pid ISR4331/K9 sn FLM24090B9A
+diagnostic bootup level minimal
+spanning-tree extend system-id
+!
+!
+!
 username admin secret 5 $1$j3o9$QstT31A7tRdDYL4MI1NnB0
+!
+redundancy
+ mode none
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Tunnel0
+ description DMVPN hub 1
+ ip address 10.48.66.1 255.255.255.240
+ no ip redirects
+ ip mtu 1400
+ ip nhrp authentication SEC2DMVP
+ ip nhrp network-id 1
+ ip nhrp redirect
+ ip tcp adjust-mss 1360
+ tunnel source GigabitEthernet0/0/0
+ tunnel mode gre multipoint
+ tunnel key 1
 !
 interface GigabitEthernet0/0/0
  ip address 10.48.64.2 255.255.255.252
- no shut
+ negotiation auto
 !
 interface GigabitEthernet0/0/1
  ip address 10.48.65.1 255.255.255.252
- no shut
+ negotiation auto
+!
+interface GigabitEthernet0/0/2
+ no ip address
+ shutdown
+ negotiation auto
+!
+interface Serial0/1/0
+ no ip address
+ shutdown
+!
+interface Serial0/1/1
+ no ip address
+ shutdown
+!
+interface GigabitEthernet0
+ vrf forwarding Mgmt-intf
+ no ip address
+ shutdown
+ negotiation auto
+!
 !
 router eigrp NA
  !
@@ -32,7 +136,20 @@ router eigrp NA
   network 10.48.65.0 0.0.0.3
  exit-address-family
 !
+ip forward-protocol nd
+ip http server
+ip http authentication local
+ip http secure-server
+ip tftp source-interface GigabitEthernet0
 ip route 0.0.0.0 0.0.0.0 GigabitEthernet0/0/0
+!
+!
+!
+!
+!
+!
+!
+control-plane
 !
 banner motd ^CAuthorized Access Only!!!^C
 !
@@ -55,5 +172,14 @@ line vty 5 15
  password 7 110C171112001B1E0D392E
  login local
  transport input ssh
+!
+wsma agent exec
+!
+wsma agent config
+!
+wsma agent filesys
+!
+wsma agent notify
+!
 !
 end

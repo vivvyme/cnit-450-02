@@ -1,56 +1,185 @@
-Author: Tram Nguyen 9/18/26 3:08PM 
-
-Hostname  NA-R-01
-Ip domain-name sec2.local
-Crypto key generate rsa modulus 1024
-Login block-for 120 attempts 3 within 60
-No ip domain lookup
-Service password-encryption
-Username admin secret enterprise
-Enable secret enterprise
-Line con 0
-Password enterprise
-login
-Exec-timeout 5
-Logging synchronous
-exit
-Line vty 0 15
-Password enterprise
-Login
-Transport input ssh
-Login local
-Exec-timeout 5
-Exit
-interface Serial0/1/0
-ip address 10.48.65.9 255.255.255.252
-interface Serial0/1/1
-ip address 10.48.65.13 255.255.255.252
+version 16.6
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+platform qfp utilization monitor load 80
+no platform punt-keepalive disable-kernel-core
+!
+hostname NA-R-01
+!
+boot-start-marker
+boot-end-marker
+!
+!
+vrf definition Mgmt-intf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+enable secret 5 $1$35Bw$u6SPlKEBIMZEX5HaUrHAQ.
+!
+no aaa new-model
+!
+no ip domain lookup
+ip domain name sec2.local
+crypto key generate rsa modulus 1024
+!
+!
+!
+login block-for 120 attempts 3 within 60
+!
+!
+!
+!
+!
+!
+!
+subscriber templating
+!
+!
+!
+!
+!
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+license udi pid ISR4331/K9 sn FLM24090ACR
+diagnostic bootup level minimal
+spanning-tree extend system-id
+!
+!
+!
+username admin secret 5 $1$rYt0$42ClRNutV4vV.ZBLZ.ltR.
+!
+redundancy
+ mode none
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+crypto isakmp policy 1
+ encr aes 256
+ hash sha256
+ authentication pre-share
+crypto isakmp key key123 address 10.48.65.10
+!
+!
+crypto ipsec transform-set NA-SOHO-IPSEC esp-aes 256 esp-sha-hmac
+ mode transport
+!
+crypto ipsec profile NA-SOHO-IPSEC
+ set transform-set NA-SOHO-IPSEC
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Tunnel10
+ ip address 172.20.1.1 255.255.255.252
+ tunnel source Serial0/1/0
+ tunnel destination 10.48.65.10
+ tunnel protection ipsec profile NA-SOHO-IPSEC
+!
 interface GigabitEthernet0/0/0
-ip address 10.48.65.18 255.255.255.252
-
+ ip address 10.48.65.18 255.255.255.252
+ negotiation auto
+!
+interface GigabitEthernet0/0/1
+ no ip address
+ negotiation auto
+!
+interface GigabitEthernet0/0/2
+ no ip address
+ negotiation auto
+!
+interface Serial0/1/0
+ ip address 10.48.65.9 255.255.255.252
+!
+interface Serial0/1/1
+ ip address 10.48.65.13 255.255.255.252
+!
+interface GigabitEthernet0
+ vrf forwarding Mgmt-intf
+ no ip address
+ negotiation auto
+!
+!
 router eigrp NA
-address-family ipv4 unicast autonomous-system 10
+ !
+ address-family ipv4 unicast autonomous-system 10
+  !
   topology base
   exit-af-topology
   network 10.48.65.8 0.0.0.3
-  network 10.48.65.16 0.0.0.3
   network 10.48.65.12 0.0.0.3
+  network 10.48.65.16 0.0.0.3
   network 172.20.1.0 0.0.0.3
-exit-address-family
-
-crypto isakmp policy 1
-encr aes 256
-hash sha256
-authentication pre-share
-crypto isakmp key key123 address 10.48.65.10
-crypto ipsec transform-set NA-SOHO-IPSEC esp-aes 256 esp-sha-hmac
-mode transport
-exit
-crypto ipsec profile NA-SOHO-IPSEC
-set transform-set NA-SOHO-IPSEC
-exit
-interface Tunnel10
-ip address 172.20.1.1 255.255.255.252
-tunnel source Serial0/1/0
-tunnel destination 10.48.65.10
-tunnel protection ipsec profile NA-SOHO-IPSEC
+ exit-address-family
+!
+ip forward-protocol nd
+no ip http server
+ip http secure-server
+ip tftp source-interface GigabitEthernet0
+!
+!
+!
+!
+!
+!
+!
+control-plane
+!
+!
+line con 0
+ exec-timeout 5 0
+ password 7 104B070D0005021905172F
+ logging synchronous
+ login
+ transport input none
+ stopbits 1
+line aux 0
+ stopbits 1
+line vty 0 4
+ exec-timeout 5 0
+ password 7 00011D1201491B14063249
+ login local
+ transport input ssh
+line vty 5 15
+ exec-timeout 5 0
+ password 7 00011D1201491B14063249
+ login local
+ transport input ssh
+!
+wsma agent exec
+!
+wsma agent config
+!
+wsma agent filesys
+!
+wsma agent notify
+!
+!
+end

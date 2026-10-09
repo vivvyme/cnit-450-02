@@ -3,6 +3,7 @@ import argparse
 import difflib
 import os
 import re
+import select
 import shlex
 import shutil
 import subprocess
@@ -16,6 +17,12 @@ try:
     import curses
 except ImportError:
     curses = None
+
+if os.name == "nt":
+    import msvcrt
+else:
+    import termios
+    import tty
 
 try:
     import serial
@@ -41,6 +48,7 @@ DROP_RE = re.compile(r"^(Building configuration.*|Current configuration.*|! Last
 SYSLOG_RE = re.compile(r"^\*?([A-Z][a-z]{2} +\d+ [\d:.]+: )?%[A-Z0-9_]+-\d-[A-Z0-9_]+:")
 VLAN_LINE_RE = re.compile(r"^(\d+)\s+(\S+)\s+(active|act/lshut|act/unsup|suspended|sus/lshut)", re.MULTILINE)
 FACTORY_NAMES = {"switch", "router"}
+ESCAPE_KEY = b"\x1d"
 SLOW_RE = re.compile(r"^\s*(crypto key|write|copy)\b", re.IGNORECASE)
 
 TODO, BUSY, DONE, WARN, FAIL = "[    ]", "[ .. ]", "[done]", "[warn]", "[FAIL]"
@@ -256,11 +264,51 @@ def capture(console):
     return config, vlans
 
 
+def console_session(port, log):
+    port.write(b"\r")
+    if os.name == "nt":
+        while True:
+            if port.in_waiting:
+                data = port.read(port.in_waiting)
+                sys.stdout.write(data.decode("ascii", errors="replace"))
+                sys.stdout.flush()
+                log.write(data.decode("ascii", errors="replace"))
+            if msvcrt.kbhit():
+                key = msvcrt.getwch()
+                if key in ("\x00", "\xe0"):
+                    msvcrt.getwch()
+                elif key.encode() == ESCAPE_KEY:
+                    return
+                else:
+                    port.write(key.encode("ascii", errors="ignore"))
+            else:
+                time.sleep(0.01)
+    keyboard = sys.stdin.fileno()
+    saved = termios.tcgetattr(keyboard)
+    tty.setraw(keyboard)
+    try:
+        while True:
+            ready = select.select([keyboard, port.fileno()], [], [], 0.2)[0]
+            if port.fileno() in ready:
+                data = port.read(port.in_waiting or 1)
+                os.write(sys.stdout.fileno(), data)
+                log.write(data.decode("ascii", errors="replace"))
+            if keyboard in ready:
+                data = os.read(keyboard, 1024)
+                if ESCAPE_KEY in data:
+                    port.write(data.split(ESCAPE_KEY)[0])
+                    return
+                port.write(data)
+    finally:
+        termios.tcsetattr(keyboard, termios.TCSADRAIN, saved)
+
+
 class Console:
     def __init__(self, port, log, ui):
         self.port = port
         self.log = log
         self.ui = ui
+        self.last_prompt = ""
 
     def read(self, timeout, idle, done=None):
         buf = ""
@@ -293,6 +341,9 @@ class Console:
             text, finished = self.read(timeout, 0.02, lambda b: "\n" in b and (
                 QUESTION_RE.search(b) or prompt_after(b, sent)))
             output += text
+            prompt = prompt_after(output, sent)
+            if prompt:
+                self.last_prompt = prompt.group(0).strip()
             if not finished or not QUESTION_RE.search(text):
                 return output, finished
             self.write("yes" if "yes/no" in text.lower()[-12:] else "")
@@ -383,7 +434,11 @@ def push(console, device):
     send("terminal length 0", "setting up")
     send("terminal width 512", "setting up")
     send("configure terminal", "setting up")
+    ui.say("Press t at any time to pause and type on the device's console yourself.")
     for number, line in enumerate(lines, 1):
+        if ui.pause_requested() and not ui.take_over(console, f"before line {number} of {len(lines)}"):
+            raise DeviceError(f"you stopped it before line {number} of {len(lines)}, so the config is only "
+                              "partly applied")
         output = send(line, f"line {number} of {len(lines)}")
         prompt = prompt_after(output, line.strip())
         if prompt and not prompt.group(2):
@@ -483,7 +538,7 @@ class UI:
             self.put(row, 0, line, curses.color_pair(colour))
 
         if prompt is None:
-            self.put(height - 1, 0, " Up/Down select   Enter send config   g grab config from device   p pull   "
+            self.put(height - 1, 0, " Up/Down select   Enter send config   g grab config   t terminal   p pull   "
                                     "c cable   PgUp/PgDn scroll   q quit", curses.A_REVERSE, width)
         else:
             self.put(height - 1, 0, prompt[-(width - 1):], curses.A_BOLD)
@@ -574,6 +629,52 @@ class UI:
             self.devices.append(device)
         self.known_names = {name for name, _ in load_devices()}
         self.selected = max(0, min(self.selected, len(self.devices) - 1))
+
+    def pause_requested(self):
+        self.screen.nodelay(True)
+        wanted = False
+        try:
+            while True:
+                key = self.screen.getch()
+                if key == -1:
+                    return wanted
+                if key in (ord("t"), ord("T")):
+                    wanted = True
+        finally:
+            self.screen.nodelay(False)
+
+    def terminal(self, log):
+        self.suspend(f"Connected to the console on {self.port.port}. Type as you would in any terminal.\n"
+                     "Press Ctrl-] to go back to the tool.\n",
+                     lambda: console_session(self.port, log))
+        self.say("Back from the console.")
+
+    def take_over(self, console, where):
+        before = console.last_prompt
+        self.say(f"Paused {where}. The device was at '{before}'.", YELLOW)
+        self.terminal(console.log)
+        console.port.reset_input_buffer()
+        console.command("")
+        now = console.last_prompt
+        if now == before:
+            self.say(f"Resuming at '{now}'.")
+            return True
+        self.say(f"The device is now at '{now}', not '{before}' where the tool left it.", YELLOW)
+        choice = self.ask("[c] return to config mode and resume, [r] resume as it is, or [a] abort: ").lower()
+        if choice.startswith("c"):
+            console.command("end")
+            console.command("configure terminal")
+            return True
+        return choice.startswith("r")
+
+    def open_terminal(self):
+        if not self.port:
+            self.find_cable()
+            if not self.port:
+                return
+        LOG_DIR.mkdir(exist_ok=True)
+        with open(LOG_DIR / f"terminal-{time.strftime('%Y%m%d-%H%M%S')}.log", "w", encoding="utf-8") as log:
+            self.terminal(log)
 
     def show_diff(self, old_lines, new_lines, path):
         diff = list(difflib.unified_diff(old_lines, new_lines, lineterm="", n=2))[2:]
@@ -821,6 +922,8 @@ class UI:
                 self.send_selected()
             elif key == "g":
                 self.grab()
+            elif key == "t":
+                self.open_terminal()
             elif key == "p":
                 self.pull()
             elif key == "c":
