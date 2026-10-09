@@ -194,14 +194,10 @@ class-map match-any system-cpp-police-system-critical
 !
 policy-map system-cpp-policy
 !
-!
-!
-!
-!
-!
-!
-!
-!
+vtp mode server
+vtp domain sec2.local
+vtp password enterprise
+vtp version 3
 !
 !
 interface GigabitEthernet0/0
