@@ -63,10 +63,9 @@ spanning-tree extend system-id
 !
 vlan internal allocation policy ascending
 !
-!
-!
-!
-!
+vtp mode client
+vtp domain sec2.local
+vtp password enterprise
 !
 interface Port-channel1
  switchport mode trunk
