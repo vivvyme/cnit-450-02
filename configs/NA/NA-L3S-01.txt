@@ -150,14 +150,27 @@ class-map match-any system-cpp-police-system-critical
 !
 policy-map system-cpp-policy
 !
+vlan 10
+name MGMT
+vlan 20
+name EXEC
+vlan 30
+name HR
+vlan 40
+name FINANCE
+vlan 50
+name USERS
+vlan 60
+name VOICE
+vlan 70
+name GUESTS
+exit
 !
-!
-!
-!
-!
-!
-!
-!
+vtp mode server
+vtp domain sec2.local
+vtp password enterprise
+vtp version 3
+vtp primary vlan
 !
 !
 interface GigabitEthernet0/0
