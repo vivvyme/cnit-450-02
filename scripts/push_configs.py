@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 import argparse
+import difflib
 import os
 import re
+import shlex
+import shutil
 import subprocess
 import sys
+import tempfile
 import textwrap
 import time
 from pathlib import Path
@@ -25,12 +29,18 @@ LOG_DIR = REPO / "logs"
 
 HOSTNAME_RE = re.compile(r"^\s*hostname\s+(\S+)\s*$", re.IGNORECASE | re.MULTILINE)
 PROMPT_RE = re.compile(r"(?:^|[\r\n])([\w.\-/]+)(\([\w.\-/ ]+\))?([>#])\s*$")
+PROMPT_LINE_RE = re.compile(r"^([\w.\-/]+)(\([\w.\-/ ]+\))?([>#])[ \t]*$", re.MULTILINE)
 QUESTION_RE = re.compile(r"(\[yes/no\]|\[confirm\]|\(yes/no\))[:?]?\s*$", re.IGNORECASE)
 ERROR_RE = re.compile(r"^\s*%\s*(Invalid|Incomplete|Ambiguous|Unknown|Bad|Unrecognized).*$", re.MULTILINE)
 SKIP_RE = re.compile(r"^(!.*|end|Building configuration.*|Current configuration.*)$", re.IGNORECASE)
 CONFLICT_RE = re.compile(r"^(<{7}|={7}|>{7})( |$)", re.MULTILINE)
 NOTE_RE = re.compile(r"^[A-Z][A-Za-z ]*:(\s|$)")
 PKI_RE = re.compile(r"^crypto pki (trustpoint|certificate chain) TP-self-signed", re.IGNORECASE)
+DROP_RE = re.compile(r"^(Building configuration.*|Current configuration.*|! Last configuration change.*|"
+                     r"! NVRAM config last updated.*|! No configuration change since.*|ntp clock-period.*)$")
+SYSLOG_RE = re.compile(r"^\*?([A-Z][a-z]{2} +\d+ [\d:.]+: )?%[A-Z0-9_]+-\d-[A-Z0-9_]+:")
+VLAN_LINE_RE = re.compile(r"^(\d+)\s+(\S+)\s+(active|act/lshut|act/unsup|suspended|sus/lshut)", re.MULTILINE)
+FACTORY_NAMES = {"switch", "router"}
 SLOW_RE = re.compile(r"^\s*(crypto key|write|copy)\b", re.IGNORECASE)
 
 TODO, BUSY, DONE, WARN, FAIL = "[    ]", "[ .. ]", "[done]", "[warn]", "[FAIL]"
@@ -162,6 +172,90 @@ def check_configs():
     return counts["error"] == 0
 
 
+def split_reply(text, sent=""):
+    text = text.replace("\r", "")
+    echo = text.find(sent) if sent else -1
+    rest = text[echo + len(sent):] if echo >= 0 else text.partition("\n")[2]
+    found = list(PROMPT_LINE_RE.finditer(rest))
+    return rest, found[-1] if found else None
+
+
+def prompt_after(text, sent=""):
+    return split_reply(text, sent)[1]
+
+
+def reply_body(text, sent):
+    rest, prompt = split_reply(text, sent)
+    return (rest[:prompt.start()] if prompt else rest).lstrip("\n")
+
+
+def is_show_run(text):
+    lines = [line.strip() for line in text.replace("\r", "").splitlines() if line.strip()]
+    return bool(lines) and (lines[-1] == "end" or any(
+        line.startswith(("Building configuration", "Current configuration")) for line in lines[:5]))
+
+
+def clean_capture(raw):
+    lines = []
+    in_pki = False
+    for line in raw.splitlines():
+        line = line.rstrip()
+        if SYSLOG_RE.match(line) or (in_pki and line.startswith(" ")):
+            continue
+        in_pki = bool(PKI_RE.match(line))
+        if in_pki or DROP_RE.match(line):
+            continue
+        lines.append(line)
+    while lines and lines[0] in ("", "!"):
+        lines.pop(0)
+    while lines and not lines[-1]:
+        lines.pop()
+    return lines
+
+
+def restore_dropped(lines, old_text, vlans):
+    text = "\n".join(lines)
+    if not re.search(r"^\s*crypto key generate rsa", text, re.IGNORECASE | re.MULTILINE):
+        old = re.search(r"crypto key generate rsa\b.*?modulus\s+(\d+)", old_text or "", re.IGNORECASE)
+        key = f"crypto key generate rsa modulus {old.group(1) if old else 2048}"
+        at = next((i for i, line in enumerate(lines) if re.match(r"ip domain[ -]name ", line, re.IGNORECASE)), None)
+        if at is None:
+            at = next((i for i, line in enumerate(lines) if HOSTNAME_RE.match(line)), -1)
+        lines.insert(at + 1, key)
+    have = {int(number) for number in re.findall(r"^vlan (\d+)$", text, re.MULTILINE)}
+    block = []
+    for number, name in vlans:
+        if number in have:
+            continue
+        block.append(f"vlan {number}")
+        if name != f"VLAN{number:04d}":
+            block.append(f" name {name}")
+        block.append("!")
+    if block:
+        at = next((i for i, line in enumerate(lines) if line.startswith("interface ")), len(lines))
+        lines[at:at] = block
+    return lines
+
+
+def capture(console):
+    console.command("terminal length 0")
+    console.command("terminal width 512")
+    output, finished = console.command("show running-config", timeout=180)
+    if not finished:
+        raise DeviceError("the device did not finish sending its running config")
+    config = clean_capture(reply_body(output, "show running-config"))
+    if not any(HOSTNAME_RE.match(line) for line in config):
+        raise DeviceError("the captured config has no hostname line, so it looks incomplete")
+    vlan_output, _ = console.command("show vlan brief", timeout=30)
+    vlans = []
+    if not ERROR_RE.search(vlan_output):
+        for match in VLAN_LINE_RE.finditer(reply_body(vlan_output, "show vlan brief")):
+            number = int(match.group(1))
+            if number != 1 and not 1002 <= number <= 1005:
+                vlans.append((number, match.group(2)))
+    return config, vlans
+
+
 class Console:
     def __init__(self, port, log, ui):
         self.port = port
@@ -181,8 +275,10 @@ class Console:
                 buf += text
                 last = now
             elif buf and now - last >= idle and (done is None or done(buf)):
+                self.ui.draw()
                 return buf, True
             if now - start > timeout:
+                self.ui.draw()
                 return buf, False
 
     def write(self, text):
@@ -191,10 +287,11 @@ class Console:
 
     def command(self, line, timeout=8):
         self.write(line)
+        sent = line.strip()
         output = ""
         for _ in range(4):
-            text, finished = self.read(timeout, 0.15, lambda b: "\n" in b and (
-                PROMPT_RE.search(b) or QUESTION_RE.search(b)))
+            text, finished = self.read(timeout, 0.02, lambda b: "\n" in b and (
+                QUESTION_RE.search(b) or prompt_after(b, sent)))
             output += text
             if not finished or not QUESTION_RE.search(text):
                 return output, finished
@@ -274,7 +371,7 @@ def push(console, device):
             console.write("")
             answer = console.read(3, 0.3)[0]
             output += answer
-            if not PROMPT_RE.search(answer):
+            if not prompt_after(answer):
                 misses += 1
                 if misses >= 3:
                     raise DeviceError(f"the device stopped responding at '{line.strip()}'. Its config is only "
@@ -284,10 +381,11 @@ def push(console, device):
         return output
 
     send("terminal length 0", "setting up")
+    send("terminal width 512", "setting up")
     send("configure terminal", "setting up")
     for number, line in enumerate(lines, 1):
         output = send(line, f"line {number} of {len(lines)}")
-        prompt = PROMPT_RE.search(output)
+        prompt = prompt_after(output, line.strip())
         if prompt and not prompt.group(2):
             send("configure terminal", "setting up")
     send("end", "finishing")
@@ -307,6 +405,7 @@ class UI:
         self.output = [("", 0)]
         self.scroll = 0
         self.progress = ""
+        self.drawn = 0.0
         self.port = None
         self.password = None
         curses.curs_set(0)
@@ -335,7 +434,8 @@ class UI:
             elif char.isprintable():
                 self.output[-1] = (self.output[-1][0] + char, self.output[-1][1])
         del self.output[:-5000]
-        self.draw()
+        if time.monotonic() - self.drawn > 0.05:
+            self.draw()
 
 
     def put(self, row, col, text, attr=0, width=None):
@@ -349,6 +449,7 @@ class UI:
             pass
 
     def draw(self, prompt=None):
+        self.drawn = time.monotonic()
         self.screen.erase()
         height, width = self.screen.getmaxyx()
         if height < 14 or width < 70:
@@ -382,8 +483,8 @@ class UI:
             self.put(row, 0, line, curses.color_pair(colour))
 
         if prompt is None:
-            self.put(height - 1, 0, " Up/Down select   Enter send config   p pull   c cable   "
-                                    "PgUp/PgDn scroll output   q quit", curses.A_REVERSE, width)
+            self.put(height - 1, 0, " Up/Down select   Enter send config   g grab config from device   p pull   "
+                                    "c cable   PgUp/PgDn scroll   q quit", curses.A_REVERSE, width)
         else:
             self.put(height - 1, 0, prompt[-(width - 1):], curses.A_BOLD)
         self.screen.refresh()
@@ -452,6 +553,12 @@ class UI:
         self.say(git("log", "--format=  %h  %an, %ar: %s", f"{before}..{after}").stdout.rstrip())
         names = git("diff", "--name-only", before, after, "--", "configs").stdout.split("\n")
         changed = {(REPO / name).resolve() for name in names if name}
+        self.reload_devices(changed)
+        updated = [device.name for device in self.devices if device.path in changed]
+        self.say(f"Configs changed (marked *): {', '.join(updated)}" if updated
+                 else "No device configs changed in this update.")
+
+    def reload_devices(self, changed=frozenset()):
         old = {device.path: device for device in self.devices}
         wanted = {name.lower() for name in self.args.only or []}
         self.devices = []
@@ -466,10 +573,121 @@ class UI:
             device.refresh()
             self.devices.append(device)
         self.known_names = {name for name, _ in load_devices()}
-        self.selected = min(self.selected, len(self.devices) - 1)
-        updated = [device.name for device in self.devices if device.path in changed]
-        self.say(f"Configs changed (marked *): {', '.join(updated)}" if updated
-                 else "No device configs changed in this update.")
+        self.selected = max(0, min(self.selected, len(self.devices) - 1))
+
+    def show_diff(self, old_lines, new_lines, path):
+        diff = list(difflib.unified_diff(old_lines, new_lines, lineterm="", n=2))[2:]
+        added = sum(1 for line in diff if line.startswith("+"))
+        removed = sum(1 for line in diff if line.startswith("-"))
+        self.say(f"Changes to {path.relative_to(REPO)}: {added} line(s) added, {removed} removed "
+                 "(PgUp/PgDn to scroll)")
+        for line in diff:
+            colour = GREEN if line.startswith("+") else RED if line.startswith("-") else 0
+            self.output.insert(-1, (line if not line.startswith("@@") else "  ...", colour))
+        self.draw()
+        return bool(diff)
+
+    def edit(self, lines):
+        editor = os.environ.get("VISUAL") or os.environ.get("EDITOR")
+        if not editor:
+            editor = "notepad" if os.name == "nt" else next(
+                (name for name in ("nano", "vim", "vi") if shutil.which(name)), None)
+        if not editor:
+            self.say("No text editor found. Set the EDITOR environment variable and try again.", RED)
+            return lines
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8") as handle:
+            handle.write("\n".join(lines) + "\n")
+        try:
+            self.suspend(f"Opening the config in {editor}. Save and close the editor to come back.",
+                         lambda: subprocess.run([*shlex.split(editor), handle.name], check=False))
+            return Path(handle.name).read_text(encoding="utf-8").rstrip("\n").splitlines()
+        finally:
+            os.unlink(handle.name)
+
+    def grab(self):
+        if not self.port:
+            self.find_cable()
+            if not self.port:
+                return
+        self.scroll = 0
+        if self.ask("Plug the console cable into the CONSOLE port of the device to grab the config from, "
+                    "then press Enter ([c]ancel): ").lower().startswith("c"):
+            return
+        self.say("--- grabbing running config ---")
+        LOG_DIR.mkdir(exist_ok=True)
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        try:
+            with open(LOG_DIR / f"grab-{stamp}.log", "w", encoding="utf-8") as log:
+                console = Console(self.port, log, self)
+                hostname = console.login()
+                self.say(f"Connected to '{hostname}', reading its running config...")
+                config, vlans = capture(console)
+        except DeviceError as err:
+            self.say(f"Could not grab the config: {err}.", RED)
+            return
+        except (serial.SerialException, OSError) as err:
+            self.say(f"Lost the console cable: {err}", RED)
+            self.port = None
+            return
+        except KeyboardInterrupt:
+            self.say("Cancelled with Ctrl-C.", YELLOW)
+            return
+        finally:
+            self.progress = ""
+
+        path = next((path for name, path in load_devices() if name.lower() == hostname.lower()), None)
+        if path is None:
+            path = self.new_device_path(hostname)
+            if path is None:
+                return
+        old_text = path.read_text(errors="replace") if path.exists() else ""
+        config = restore_dropped(config, old_text, vlans)
+        old_lines = [line.rstrip() for line in old_text.replace("\r", "").splitlines()]
+        converting = bool(old_text) and not is_show_run(old_text)
+        if converting:
+            self.say(f"{path.relative_to(REPO)} is written by hand in a different style. Saving will convert "
+                     "the whole file to the device's running-config style.", YELLOW)
+
+        while True:
+            if not self.show_diff(old_lines, config, path):
+                self.say(f"{path.relative_to(REPO)} already matches the device. Nothing to save.", GREEN)
+                return
+            action = "convert and save" if converting else "save"
+            choice = self.ask(f"[s] {action}, [e] edit it first, or [d] discard: ").lower()
+            if choice.startswith("e"):
+                config = self.edit(config)
+            elif choice.startswith("s"):
+                break
+            elif choice.startswith("d"):
+                self.say("Discarded, nothing was saved.")
+                return
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("\n".join(config) + "\n", encoding="utf-8")
+        self.say(f"Saved {path.relative_to(REPO)}. It is not committed: review it with git diff and put it "
+                 "through a pull request.", GREEN)
+        if git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip() == "main":
+            self.say("You are on main, which cannot be pushed to directly. Create a branch before committing.",
+                     YELLOW)
+        self.reload_devices()
+
+    def new_device_path(self, hostname):
+        if hostname.lower() in FACTORY_NAMES:
+            self.say(f"This device still has the factory name '{hostname}'. Set its hostname first, then grab "
+                     "it again.", RED)
+            return None
+        if not self.ask_yes(f"There is no config file for {hostname}. Add it as a new device?"):
+            return None
+        folders = sorted(path.name for path in CONFIG_DIR.iterdir() if path.is_dir())
+        self.say(f"Site folders: {', '.join(folders)}")
+        folder = self.ask("Which site folder does it belong in? (type a new name to create one): ")
+        if not re.fullmatch(r"[\w.-]+", folder):
+            self.say("Cancelled, no folder given.")
+            return None
+        path = CONFIG_DIR / folder / f"{hostname}.txt"
+        if not self.ask_yes(f"Create {path.relative_to(REPO)}?"):
+            return None
+        return path
 
     def open_port(self, name):
         try:
@@ -601,6 +819,8 @@ class UI:
                 self.scroll_output(key)
             elif key in ("\n", "\r", curses.KEY_ENTER):
                 self.send_selected()
+            elif key == "g":
+                self.grab()
             elif key == "p":
                 self.pull()
             elif key == "c":
@@ -631,9 +851,9 @@ def run(args):
         return True
 
     if serial is None:
-        sys.exit("pyserial is not installed. Run: pip install pyserial (Arch: sudo pacman -S python-pyserial)")
+        sys.exit("pyserial is not installed. Start the script with scripts/run.sh (scripts\\run.bat on Windows).")
     if curses is None:
-        sys.exit("The screen library is missing. On Windows run: pip install windows-curses")
+        sys.exit("The screen library is missing. Start the script with scripts\\run.bat on Windows.")
     if not sys.stdin.isatty() or not sys.stdout.isatty():
         sys.exit("Run this in a terminal window.")
 
