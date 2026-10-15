@@ -13,6 +13,7 @@ netmiko==4.8.0
 ntc_templates==9.3.0
 packaging==26.3
 paramiko==5.0.0
+pybatfish==2026.9.17.3748
 pycparser==3.0
 Pygments==2.21.0
 PyNaCl==1.6.2
