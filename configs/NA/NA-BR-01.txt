@@ -84,6 +84,9 @@ redundancy
 !
 !
 !
+vtp domain VTP
+vtp mode server
+!
 interface Tunnel0
  description DMVPN hub 1
  ip address 10.48.66.1 255.255.255.240

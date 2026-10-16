@@ -40,6 +40,7 @@ vlan internal allocation policy ascending
 !
 !
 vtp domain sec2.local
+vtp version 3
 vtp mode client
 vtp password enterprise
 !
@@ -101,10 +102,13 @@ interface FastEthernet0/21
 interface FastEthernet0/22
 !
 interface FastEthernet0/23
+ switchport access vlan 40
+ switchport mode access
+ no shutdown
 !
 interface FastEthernet0/24
  switchport access vlan 10
- switchport mode trunk
+ switchport mode access
  no shutdown
 !
 interface GigabitEthernet0/1

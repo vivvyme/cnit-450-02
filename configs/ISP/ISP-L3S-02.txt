@@ -3,7 +3,6 @@ no service pad
 service timestamps debug datetime msec
 service timestamps log datetime msec
 service password-encryption
-! Call-home is enabled by Smart-Licensing.
 service call-home
 no platform punt-keepalive disable-kernel-core
 !
@@ -57,8 +56,8 @@ login on-success log
 !
 !
 crypto pki trustpoint SLA-TrustPoint
- enrollment pkcs12
  revocation-check crl
+!
 !
 !
 crypto pki certificate chain SLA-TrustPoint
@@ -164,8 +163,20 @@ policy-map system-cpp-policy
 vlan 99
  name MGMT
 !
+vlan 100
+ name Management
+!
+vlan 101
+ name UserGroupA
+!
+vlan 102
+ name UserGroupB
+!
 vlan 999
  name JUNK
+!
+vtp domain VTP
+vtp mode server
 !
 interface GigabitEthernet0/0
  vrf forwarding Mgmt-vrf

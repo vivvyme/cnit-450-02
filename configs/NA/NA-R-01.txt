@@ -52,6 +52,7 @@ multilink bundle-name authenticated
 !
 !
 !
+!
 license udi pid ISR4331/K9 sn FLM24090ACR
 diagnostic bootup level minimal
 spanning-tree extend system-id
@@ -96,6 +97,9 @@ crypto ipsec profile NA-SOHO-IPSEC
 !
 !
 !
+!
+vtp domain VTP
+vtp mode server
 !
 interface Tunnel10
  ip address 172.20.1.1 255.255.255.252

@@ -3,7 +3,6 @@ no service pad
 service timestamps debug datetime msec
 service timestamps log datetime msec
 service password-encryption
-! Call-home is enabled by Smart-Licensing.
 service call-home
 no platform punt-keepalive disable-kernel-core
 !
@@ -34,6 +33,7 @@ call-home
   active
   destination transport-method http
   no destination transport-method email
+vtp primary vlan
 ip routing
 !
 !
@@ -56,10 +56,9 @@ login on-success log
 !
 !
 !
-!
 crypto pki trustpoint SLA-TrustPoint
- enrollment pkcs12
  revocation-check crl
+!
 !
 !
 crypto pki certificate chain SLA-TrustPoint
@@ -185,6 +184,9 @@ vlan 60
 vlan 70
  name GUESTS
 !
+vlan 999
+ name JUNK
+!
 vtp domain sec2.local
 vtp version 3
 vtp mode server
@@ -220,57 +222,75 @@ interface GigabitEthernet1/0/5
  no shutdown
 !
 interface GigabitEthernet1/0/6
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/7
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/8
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/9
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/10
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/11
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/12
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/13
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/14
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/15
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/16
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/17
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/18
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/19
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/20
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/21
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/22
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/23
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/0/24
@@ -279,15 +299,19 @@ interface GigabitEthernet1/0/24
  no shutdown
 !
 interface GigabitEthernet1/1/1
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/1/2
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/1/3
+ switchport access vlan 999
  shutdown
 !
 interface GigabitEthernet1/1/4
+ switchport access vlan 999
  shutdown
 !
 interface Vlan1
@@ -314,6 +338,8 @@ interface Vlan20
 interface Vlan30
  description HR
  ip address 10.48.30.2 255.255.255.0
+ ip helper-address 10.48.10.9
+ ip helper-address 10.48.10.10
  standby version 2
  standby 30 ip 10.48.30.1
  standby 30 priority 150
@@ -323,6 +349,8 @@ interface Vlan30
 interface Vlan40
  description FINANCE
  ip address 10.48.40.2 255.255.255.0
+ ip helper-address 10.48.10.9
+ ip helper-address 10.48.10.10
  standby version 2
  standby 40 ip 10.48.40.1
  standby 40 preempt

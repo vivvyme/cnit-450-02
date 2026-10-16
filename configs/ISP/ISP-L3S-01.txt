@@ -168,8 +168,20 @@ vlan 10
 vlan 99
  name MGMT
 !
+vlan 100
+ name Management
+!
+vlan 101
+ name UserGroupA
+!
+vlan 102
+ name UserGroupB
+!
 vlan 999
  name JUNK
+!
+vtp domain VTP
+vtp mode server
 !
 interface GigabitEthernet0/0
  vrf forwarding Mgmt-vrf
@@ -200,40 +212,94 @@ interface GigabitEthernet1/0/5
  no shutdown
 !
 interface GigabitEthernet1/0/6
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/7
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/8
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/9
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/10
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/11
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/12
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/13
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/14
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/15
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/16
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/17
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/18
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/19
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/20
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/21
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/22
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/23
+ switchport access vlan 999
+ switchport mode access
+ shutdown
 !
 interface GigabitEthernet1/0/24
  no switchport
@@ -276,8 +342,7 @@ ip http server
 ip http authentication local
 ip http secure-server
 ip route 0.0.0.0 0.0.0.0 10.48.64.17
-ip route 10.48.10.0 255.255.255.0 Vlan10
-ip route 10.48.65.0 255.255.255.0 10.48.64.2
+ip route 10.48.0.0 255.255.128.0 10.48.64.2
 !
 !
 !

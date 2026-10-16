@@ -28,6 +28,7 @@ login block-for 120 attempts 3 within 60
 !
 !
 !
+!
 spanning-tree mode pvst
 spanning-tree extend system-id
 !
@@ -38,8 +39,20 @@ vlan internal allocation policy ascending
 !
 !
 !
+vlan 100
+ name Management
+!
+vlan 101
+ name UserGroupA
+!
+vlan 102
+ name UserGroupB
+!
 vlan 999
  name JUNK
+!
+vtp domain VTP
+vtp mode server
 !
 interface FastEthernet0/1
 !
