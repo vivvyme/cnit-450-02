@@ -5,10 +5,14 @@ import time
 import re
 import os
 
+#TODO: device detection
+#TODO: import password from system variables? i just removed it for now
+
+password = ""
 
 def main():
     port = serial.Serial(port='COM3')
-    logon(port, "enterprise")
+    logon(port, password)
     fhand = open(os.path.dirname(os.path.abspath(__file__)) + '/addresses.txt')
     for address in fhand:
         pinginate(port, address)
