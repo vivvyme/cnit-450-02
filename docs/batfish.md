@@ -1,12 +1,12 @@
 # Batfish
 
-Batfish reads configs in `configs/`. 
-It will route incorrect loops, typos, and  references before provisioning.
+Batfish reads configs in `configs/`.
+It catches routing loops, typos, and bad references before provisioning.
 
 **Start:** (Proxmox/Docker):
 
 ```bash
-docker run -d --name batfish -p 9996:9996 -p 9997:9997 batfish/allinone
+docker run -d --name batfish --restart unless-stopped -p 9996:9996 batfish/batfish:2026.08.27.3685
 ```
 
 **Analysis:**
