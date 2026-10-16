@@ -39,26 +39,9 @@ vlan internal allocation policy ascending
 !
 !
 !
-vlan 10
- name MGMT
-!
-vlan 20
- name EXEC
-!
-vlan 30
- name HR
-!
-vlan 40
- name FINANCE
-!
-vlan 50
- name USERS
-!
-vlan 60
- name VOICE
-!
-vlan 70
- name GUESTS
+vtp domain sec2.local
+vtp mode client
+vtp password enterprise
 !
 interface FastEthernet0/1
  switchport mode trunk

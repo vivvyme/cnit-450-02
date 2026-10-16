@@ -185,6 +185,11 @@ vlan 60
 vlan 70
  name GUESTS
 !
+vtp domain sec2.local
+vtp version 3
+vtp mode server
+vtp password enterprise
+!
 interface GigabitEthernet0/0
  vrf forwarding Mgmt-vrf
  no ip address
