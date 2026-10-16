@@ -221,7 +221,41 @@ def clean_capture(raw):
     return lines
 
 
-def restore_dropped(lines, old_text, vlans):
+def parse_vtp(status, password_output):
+    mode = re.search(r"VTP Operating Mode\s*:\s*(.+)", status)
+    if not mode:
+        return None
+    domain = re.search(r"VTP Domain Name\s*:\s*(\S*)", status)
+    version = re.search(r"VTP version running\s*:\s*(\d)", status, re.IGNORECASE)
+    password = re.search(r"VTP Password:\s*(\S+)", password_output)
+    hidden = not password or "hidden" in password_output.lower()
+    return {
+        "mode": mode.group(1).strip().lower(),
+        "domain": domain.group(1) if domain else "",
+        "version": version.group(1) if version else "1",
+        "password": None if hidden else password.group(1),
+    }
+
+
+def vtp_lines(vtp):
+    lines = []
+    if vtp["domain"]:
+        lines.append(f"vtp domain {vtp['domain']}")
+    if vtp["version"] != "1":
+        lines.append(f"vtp version {vtp['version']}")
+    lines.append(f"vtp mode {'server' if 'server' in vtp['mode'] else vtp['mode']}")
+    if vtp["password"]:
+        lines.append(f"vtp password {vtp['password']}")
+    return lines
+
+
+def vlans_come_from_vtp(vtp):
+    if not vtp:
+        return False
+    return vtp["mode"] == "client" or (vtp["version"] == "3" and vtp["mode"] == "server")
+
+
+def restore_dropped(lines, old_text, vlans, vtp=None):
     text = "\n".join(lines)
     if not re.search(r"^\s*crypto key generate rsa", text, re.IGNORECASE | re.MULTILINE):
         old = re.search(r"crypto key generate rsa\b.*?modulus\s+(\d+)", old_text or "", re.IGNORECASE)
@@ -233,12 +267,14 @@ def restore_dropped(lines, old_text, vlans):
     have = {int(number) for number in re.findall(r"^vlan (\d+)$", text, re.MULTILINE)}
     block = []
     for number, name in vlans:
-        if number in have:
+        if number in have or vlans_come_from_vtp(vtp):
             continue
         block.append(f"vlan {number}")
         if name != f"VLAN{number:04d}":
             block.append(f" name {name}")
         block.append("!")
+    if vtp and not re.search(r"^vtp ", text, re.MULTILINE):
+        block += [*vtp_lines(vtp), "!"]
     if block:
         at = next((i for i, line in enumerate(lines) if line.startswith("interface ")), len(lines))
         lines[at:at] = block
@@ -261,7 +297,12 @@ def capture(console):
             number = int(match.group(1))
             if number != 1 and not 1002 <= number <= 1005:
                 vlans.append((number, match.group(2)))
-    return config, vlans
+    vtp_output, _ = console.command("show vtp status", timeout=30)
+    vtp = None
+    if not ERROR_RE.search(vtp_output):
+        password_output, _ = console.command("show vtp password", timeout=30)
+        vtp = parse_vtp(reply_body(vtp_output, "show vtp status"), reply_body(password_output, "show vtp password"))
+    return config, vlans, vtp
 
 
 def console_session(port, log):
@@ -722,7 +763,7 @@ class UI:
                 console = Console(self.port, log, self)
                 hostname = console.login()
                 self.say(f"Connected to '{hostname}', reading its running config...")
-                config, vlans = capture(console)
+                config, vlans, vtp = capture(console)
         except DeviceError as err:
             self.say(f"Could not grab the config: {err}.", RED)
             return
@@ -742,7 +783,7 @@ class UI:
             if path is None:
                 return
         old_text = path.read_text(errors="replace") if path.exists() else ""
-        config = restore_dropped(config, old_text, vlans)
+        config = restore_dropped(config, old_text, vlans, vtp)
         old_lines = [line.rstrip() for line in old_text.replace("\r", "").splitlines()]
         converting = bool(old_text) and not is_show_run(old_text)
         if converting:
