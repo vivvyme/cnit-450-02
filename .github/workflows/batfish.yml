@@ -1,0 +1,51 @@
+name: Batfish Analysis
+
+on:
+  push:
+  pull_request:
+    branches: ["main", "master"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  batfish:
+    name: Analyze configs with Batfish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      batfish:
+        image: batfish/batfish:2026.08.27.3685
+        ports:
+          - 9996:9996
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install pybatfish
+        run: pip install "$(grep -E '^pybatfish==' deps/requirements.txt)"
+
+      - name: Wait for Batfish
+        run: |
+          for i in $(seq 1 30); do
+            python -c "from pybatfish.client.session import Session; Session(host='localhost')" 2>/dev/null && exit 0
+            echo "Waiting for Batfish ($i/30)..."
+            sleep 5
+          done
+          echo "Batfish did not start."
+          exit 1
+
+      - name: Run Batfish analysis
+        run: python scripts/analyze_configs.py --host localhost
+
+      - name: Show Batfish container logs (only runs if a step failed)
+        if: failure()
+        run: docker ps -aq | xargs -r -L1 docker logs
