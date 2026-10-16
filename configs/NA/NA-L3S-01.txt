@@ -194,24 +194,30 @@ interface GigabitEthernet0/0
  vrf forwarding Mgmt-vrf
  no ip address
  negotiation auto
+ no shutdown
 !
 interface GigabitEthernet1/0/1
  no switchport
  ip address 10.48.65.2 255.255.255.252
+ no shutdown
 !
 interface GigabitEthernet1/0/2
  no switchport
  ip address 10.48.65.21 255.255.255.252
+ no shutdown
 !
 interface GigabitEthernet1/0/3
  switchport mode trunk
+ no shutdown
 !
 interface GigabitEthernet1/0/4
  switchport mode trunk
+ no shutdown
 !
 interface GigabitEthernet1/0/5
  no switchport
  ip address 10.48.65.17 255.255.255.252
+ no shutdown
 !
 interface GigabitEthernet1/0/6
  shutdown
@@ -270,6 +276,7 @@ interface GigabitEthernet1/0/23
 interface GigabitEthernet1/0/24
  switchport access vlan 10
  switchport mode access
+ no shutdown
 !
 interface GigabitEthernet1/1/1
  shutdown
@@ -285,6 +292,7 @@ interface GigabitEthernet1/1/4
 !
 interface Vlan1
  no ip address
+ no shutdown
 !
 interface Vlan10
  description MGMT
@@ -293,6 +301,7 @@ interface Vlan10
  standby 10 ip 10.48.10.1
  standby 10 priority 150
  standby 10 preempt
+ no shutdown
 !
 interface Vlan20
  description EXEC
@@ -300,6 +309,7 @@ interface Vlan20
  standby version 2
  standby 20 ip 10.48.20.1
  standby 20 preempt
+ no shutdown
 !
 interface Vlan30
  description HR
@@ -308,6 +318,7 @@ interface Vlan30
  standby 30 ip 10.48.30.1
  standby 30 priority 150
  standby 30 preempt
+ no shutdown
 !
 interface Vlan40
  description FINANCE
@@ -315,6 +326,7 @@ interface Vlan40
  standby version 2
  standby 40 ip 10.48.40.1
  standby 40 preempt
+ no shutdown
 !
 interface Vlan50
  description USERS
@@ -323,6 +335,7 @@ interface Vlan50
  standby 50 ip 10.48.50.1
  standby 50 priority 150
  standby 50 preempt
+ no shutdown
 !
 interface Vlan60
  description VOICE
@@ -330,6 +343,7 @@ interface Vlan60
  standby version 2
  standby 60 ip 10.48.60.1
  standby 60 preempt
+ no shutdown
 !
 interface Vlan70
  description GUESTS
@@ -338,6 +352,7 @@ interface Vlan70
  standby 70 ip 10.48.70.1
  standby 70 priority 150
  standby 70 preempt
+ no shutdown
 !
 !
 router eigrp NA

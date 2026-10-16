@@ -102,29 +102,36 @@ interface Tunnel10
  tunnel source Serial0/1/0
  tunnel destination 10.48.65.10
  tunnel protection ipsec profile NA-SOHO-IPSEC
+ no shutdown
 !
 interface GigabitEthernet0/0/0
  ip address 10.48.65.18 255.255.255.252
  negotiation auto
+ no shutdown
 !
 interface GigabitEthernet0/0/1
  no ip address
  negotiation auto
+ no shutdown
 !
 interface GigabitEthernet0/0/2
  no ip address
  negotiation auto
+ no shutdown
 !
 interface Serial0/1/0
  ip address 10.48.65.9 255.255.255.252
+ no shutdown
 !
 interface Serial0/1/1
  ip address 10.48.65.13 255.255.255.252
+ no shutdown
 !
 interface GigabitEthernet0
  vrf forwarding Mgmt-intf
  no ip address
  negotiation auto
+ no shutdown
 !
 !
 router eigrp NA

@@ -174,20 +174,24 @@ interface GigabitEthernet0/0
 interface GigabitEthernet1/0/1
  switchport trunk allowed vlan 20,99
  switchport mode trunk
+ no shutdown
 !
 interface GigabitEthernet1/0/2
  switchport trunk allowed vlan 30,99
  switchport mode trunk
+ no shutdown
 !
 interface GigabitEthernet1/0/3
  switchport trunk allowed vlan 99
  switchport mode trunk
+ no shutdown
 !
 interface GigabitEthernet1/0/4
 !
 interface GigabitEthernet1/0/5
  switchport access vlan 10
  switchport mode access
+ no shutdown
 !
 interface GigabitEthernet1/0/6
 !
@@ -241,9 +245,11 @@ interface Vlan1
 !
 interface Vlan10
  ip address 10.48.64.5 255.255.255.252
+ no shutdown
 !
 interface Vlan99
  ip address 10.48.62.3 255.255.255.248
+ no shutdown
 !
 !
 router eigrp 1

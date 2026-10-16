@@ -45,14 +45,17 @@ vtp password enterprise
 !
 interface Port-channel1
  switchport mode trunk
+ no shutdown
 !
 interface FastEthernet0/1
  switchport mode trunk
  channel-group 1 mode active
+ no shutdown
 !
 interface FastEthernet0/2
  switchport mode trunk
  channel-group 1 mode active
+ no shutdown
 !
 interface FastEthernet0/3
 !
@@ -65,6 +68,7 @@ interface FastEthernet0/6
 interface FastEthernet0/7
  switchport access vlan 10
  switchport mode access
+ no shutdown
 !
 interface FastEthernet0/8
 !
@@ -101,6 +105,7 @@ interface FastEthernet0/23
 interface FastEthernet0/24
  switchport access vlan 10
  switchport mode trunk
+ no shutdown
 !
 interface GigabitEthernet0/1
 !

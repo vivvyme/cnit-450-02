@@ -96,14 +96,17 @@ interface Tunnel0
  tunnel source GigabitEthernet0/0/0
  tunnel mode gre multipoint
  tunnel key 1
+ no shutdown
 !
 interface GigabitEthernet0/0/0
  ip address 10.48.64.2 255.255.255.252
  negotiation auto
+ no shutdown
 !
 interface GigabitEthernet0/0/1
  ip address 10.48.65.1 255.255.255.252
  negotiation auto
+ no shutdown
 !
 interface GigabitEthernet0/0/2
  no ip address

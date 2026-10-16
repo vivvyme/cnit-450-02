@@ -45,9 +45,11 @@ vtp password enterprise
 !
 interface FastEthernet0/1
  switchport mode trunk
+ no shutdown
 !
 interface FastEthernet0/2
  switchport mode trunk
+ no shutdown
 !
 interface FastEthernet0/3
 !

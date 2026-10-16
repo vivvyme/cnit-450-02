@@ -255,6 +255,32 @@ def vlans_come_from_vtp(vtp):
     return vtp["mode"] == "client" or (vtp["version"] == "3" and vtp["mode"] == "server")
 
 
+def add_no_shutdown(lines):
+    result = []
+    block = []
+
+    def finish():
+        body = [line.strip() for line in block[1:]]
+        if body and "shutdown" not in body and "no shutdown" not in body:
+            block.append(" no shutdown")
+        result.extend(block)
+        block.clear()
+
+    for line in lines:
+        if block and line.startswith(" "):
+            block.append(line)
+            continue
+        if block:
+            finish()
+        if line.startswith("interface "):
+            block.append(line)
+        else:
+            result.append(line)
+    if block:
+        finish()
+    return result
+
+
 def restore_dropped(lines, old_text, vlans, vtp=None):
     text = "\n".join(lines)
     if not re.search(r"^\s*crypto key generate rsa", text, re.IGNORECASE | re.MULTILINE):
@@ -278,7 +304,7 @@ def restore_dropped(lines, old_text, vlans, vtp=None):
     if block:
         at = next((i for i, line in enumerate(lines) if line.startswith("interface ")), len(lines))
         lines[at:at] = block
-    return lines
+    return add_no_shutdown(lines)
 
 
 def capture(console):
