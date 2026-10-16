@@ -1,21 +1,161 @@
-Hostname ISP-L2S-01
-Ip domain-name sec2.local 
-Crypto key generate rsa modulus 1024 
-Login block-for 120 attempts 3 within 60 
-No ip domain lookup 
-Service password-encryption 
-Username admin secret enterprise 
-Enable secret enterprise 
-Line con 0 
-Password enterprise 
-login 
-Exec-timeout 5 
-Logging synchronous 
-exit 
-Line vty 0 15 
-Password enterprise 
-Login 
-Transport input ssh 
-Login local 
-Exec-timeout 5 
-exit
+version 15.2
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+!
+hostname ISP-L2S-01
+!
+boot-start-marker
+boot-end-marker
+!
+enable secret 5 $1$bLcA$t5uYEs3XXCNJHc26QBKRG/
+!
+username admin secret 5 $1$tjl8$cfVgFw/ui2VjGRNp142JU0
+no aaa new-model
+system mtu routing 1500
+!
+!
+!
+!
+!
+!
+!
+no ip domain-lookup
+ip domain-name sec2.local
+crypto key generate rsa modulus 1024
+login block-for 120 attempts 3 within 60
+!
+!
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+!
+vlan internal allocation policy ascending
+!
+!
+!
+!
+!
+!
+vlan 999
+ name JUNK
+!
+interface FastEthernet0/1
+!
+interface FastEthernet0/2
+!
+interface FastEthernet0/3
+!
+interface FastEthernet0/4
+!
+interface FastEthernet0/5
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/6
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/7
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/8
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/9
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/10
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/11
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/12
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/13
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/14
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/15
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/16
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/17
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/18
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/19
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/20
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/21
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/22
+ switchport access vlan 999
+ shutdown
+!
+interface FastEthernet0/23
+!
+interface FastEthernet0/24
+!
+interface GigabitEthernet0/1
+ switchport access vlan 999
+ shutdown
+!
+interface GigabitEthernet0/2
+ switchport access vlan 999
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip http server
+ip http secure-server
+!
+no vstack
+!
+line con 0
+ exec-timeout 5 0
+ password 7 14121C1F09163A392D3B36
+ logging synchronous
+ login
+line vty 0 4
+ exec-timeout 5 0
+ password 7 06030135495C190B0C0417
+ login local
+ transport input ssh
+line vty 5 15
+ exec-timeout 5 0
+ password 7 06030135495C190B0C0417
+ login local
+ transport input ssh
+!
+end

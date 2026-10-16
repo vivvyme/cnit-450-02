@@ -1,10 +1,3 @@
-NA-L3S-02#sh run
-Building configuration...
-
-Current configuration : 10888 bytes
-!
-! Last configuration change at 01:13:10 UTC Fri Sep 25 2026
-!
 version 16.9
 no service pad
 service timestamps debug datetime msec
@@ -49,6 +42,7 @@ ip routing
 !
 no ip domain lookup
 ip domain name sec2.local
+crypto key generate rsa modulus 2048
 !
 !
 !
@@ -66,11 +60,6 @@ crypto pki trustpoint SLA-TrustPoint
  enrollment pkcs12
  revocation-check crl
 !
-crypto pki trustpoint TP-self-signed-463304180
- enrollment selfsigned
- subject-name cn=IOS-Self-Signed-Certificate-463304180
- revocation-check none
- rsakeypair TP-self-signed-463304180
 !
 !
 crypto pki certificate chain SLA-TrustPoint
@@ -101,35 +90,6 @@ crypto pki certificate chain SLA-TrustPoint
   80DDCD16 D6BACECA EEBC7CF9 8428787B 35202CDC 60E4616A B623CDBD 230E3AFB
   418616A9 4093E049 4D10AB75 27E86F73 932E35B5 8862FDAE 0275156F 719BB2F0
   D697DF7F 28
-        quit
-crypto pki certificate chain TP-self-signed-463304180
- certificate self-signed 01
-  3082032E 30820216 A0030201 02020101 300D0609 2A864886 F70D0101 05050030
-  30312E30 2C060355 04031325 494F532D 53656C66 2D536967 6E65642D 43657274
-  69666963 6174652D 34363333 30343138 30301E17 0D323630 39323530 30343134
-  365A170D 33303031 30313030 30303030 5A303031 2E302C06 03550403 1325494F
-  532D5365 6C662D53 69676E65 642D4365 72746966 69636174 652D3436 33333034
-  31383030 82012230 0D06092A 864886F7 0D010101 05000382 010F0030 82010A02
-  82010100 CA0AAEFE C76B48BF 8C828B8F 204AB04F E9460135 3FD17DC1 BE193809
-  3CA7B278 1FD29882 2529B55B 028C75CB 756482AB 83B7D88C 1BC35A72 CC3A1B49
-  12F11AA7 6AFC5DB6 DD626AB8 B29E6517 BAA76E7E 5AAE2A15 D4EC0530 57EF9811
-  EC7659C9 210DFF02 E434F1FF 02F1558B BFCAF5C6 C43733B3 94906DCE 6D90D20A
-  14080977 872016A5 F92DF0E6 5A2186A1 EB27089D EE027975 99E6215A 13D08538
-  19667F5C 60EB1133 83C85445 63B23239 47F1F5D3 B801A13F B16E422F C216C07F
-  2CCBD819 F49E1C8C 6928E418 34956CA3 315E3BCE 542198D9 662564CA EA6BE3BC
-  BEA5DC6E A1B47128 DC2B62DB 065CDA50 0128118B DC095EE6 086F075A 7DC97F0D
-  53DA1D1D 02030100 01A35330 51300F06 03551D13 0101FF04 05300301 01FF301F
-  0603551D 23041830 168014D8 397F9A7C 1B6B9398 9123CF47 7B1D1146 BBCB5930
-  1D060355 1D0E0416 0414D839 7F9A7C1B 6B939891 23CF477B 1D1146BB CB59300D
-  06092A86 4886F70D 01010505 00038201 010071D5 8A5E45F2 B96FA240 82FA0F35
-  3182C950 5B37EDBC AC7F5CC2 7E63DBDF 34CA6A7D B51A87B8 0D9613D2 2BFE1FBA
-  88B0068A E0E62514 7DFDB59F 1244064A 03AAF936 92C23D71 1DA6FD1D 2125C274
-  CC0F98D7 59B00D24 B3496631 0CCABA3D 159D6D4E 514C7519 61A63CC4 827F24E2
-  9B2157FD 84CECA81 38102CA1 B863537B 6D2BD934 1FCBB1ED 2F6977FD 1D58D604
-  1B76ABED 3A4FA026 0BB8E103 F70B1C26 E62FBE29 C398ABDE AAD0B337 F7566FAE
-  1986737F CC13AB85 23570A79 4142176B 24052A4C C525F55C 3BEB7B46 148732C0
-  073984BA AAA12136 2DBE8CBD 570659AC 2D4A4D7B E39CB524 7352E4CA B9B2DEC3
-  5473253A 25283834 B063A1F3 BE7DDDE4 E23C
         quit
 !
 license boot level ipservicesk9
@@ -209,16 +169,20 @@ interface GigabitEthernet0/0
 interface GigabitEthernet1/0/1
  no switchport
  ip address 10.48.65.6 255.255.255.252
+ no shutdown
 !
 interface GigabitEthernet1/0/2
  no switchport
  ip address 10.48.65.22 255.255.255.252
+ no shutdown
 !
 interface GigabitEthernet1/0/3
  switchport mode trunk
+ no shutdown
 !
 interface GigabitEthernet1/0/4
  switchport mode trunk
+ no shutdown
 !
 interface GigabitEthernet1/0/5
  shutdown
@@ -303,6 +267,7 @@ interface Vlan10
  standby version 2
  standby 10 ip 10.48.10.1
  standby 10 preempt
+ no shutdown
 !
 interface Vlan20
  description EXEC
@@ -311,6 +276,7 @@ interface Vlan20
  standby 20 ip 10.48.20.1
  standby 20 priority 150
  standby 20 preempt
+ no shutdown
 !
 interface Vlan30
  description HR
@@ -318,6 +284,7 @@ interface Vlan30
  standby version 2
  standby 30 ip 10.48.30.1
  standby 30 preempt
+ no shutdown
 !
 interface Vlan40
  description FINANCE
@@ -326,6 +293,7 @@ interface Vlan40
  standby 40 ip 10.48.40.1
  standby 40 priority 150
  standby 40 preempt
+ no shutdown
 !
 interface Vlan50
  description USERS
@@ -333,6 +301,7 @@ interface Vlan50
  standby version 2
  standby 50 ip 10.48.50.1
  standby 50 preempt
+ no shutdown
 !
 interface Vlan60
  description VOICE
@@ -341,6 +310,7 @@ interface Vlan60
  standby 60 ip 10.48.60.1
  standby 60 priority 150
  standby 60 preempt
+ no shutdown
 !
 interface Vlan70
  description GUESTS
@@ -348,6 +318,7 @@ interface Vlan70
  standby version 2
  standby 70 ip 10.48.70.1
  standby 70 preempt
+ no shutdown
 !
 !
 router eigrp NA

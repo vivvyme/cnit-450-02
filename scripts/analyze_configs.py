@@ -5,6 +5,15 @@ import sys
 import tempfile
 from pathlib import Path
 
+try:
+    from pybatfish.client.session import Session
+    from pybatfish.exception import BatfishException
+    from requests.exceptions import RequestException
+    BATFISH_ERRORS = (BatfishException, RequestException)
+except ImportError:
+    Session = None
+    BATFISH_ERRORS = ()
+
 REPO = Path(__file__).resolve().parent.parent
 CONFIG_DIR = REPO / "configs"
 SNAPSHOT_NAME = "cnit-450-02"
@@ -76,7 +85,7 @@ def show(session, title, question, note=None):
         print(color(f"{note}\n", DIM))
     try:
         frame = question.answer().frame()
-    except Exception as err:
+    except BATFISH_ERRORS as err:
         print(color(f"question failed: {err}", RED))
         return
     if frame.empty:
@@ -95,16 +104,14 @@ def main():
     )
     args = parser.parse_args()
 
-    try:
-        from pybatfish.client.session import Session
-    except ImportError:
+    if Session is None:
         print("pybatfish is not installed. Run: pip install -r deps/requirements.txt")
         return 1
 
     print(f"Connecting to Batfish at {args.host} ...")
     try:
         session = Session(host=args.host)
-    except Exception as err:
+    except BATFISH_ERRORS as err:
         print(color(f"could not reach a Batfish service at {args.host}: {err}", RED))
         print("Is the container running? See docs/batfish.md.")
         return 1
@@ -114,7 +121,7 @@ def main():
         print(f"Built a snapshot from {devices} config file(s).")
         try:
             session.init_snapshot(tmpdir, name=SNAPSHOT_NAME, overwrite=True)
-        except Exception as err:
+        except BATFISH_ERRORS as err:
             print(color(f"Batfish could not load the snapshot: {err}", RED))
             return 1
 
