@@ -32,24 +32,45 @@ def main():
             interestingList.append(address)
         elif check == 'success':
             continue
+    if interestingList == []:
+        print(area + '-' + name + ': All addresses pinged successfully')
+    else:
+        printL(area + '-' + name + ': ' + str(len(interestingList)) + ' interesting devices: ')
+        for address in interestingList:
+            printL(address + ' ')
+        print()
 
 
 def assembleList(name : str, area : str):
     fhand = open(os.path.dirname(os.path.abspath(__file__)) + '/' + fileName)
     addressList = yaml.load(fhand, Loader)
     allList = addressList['all']
+    if "None" in allList:
+        allList = []
+        print('Universal ping list empty, skipping')
     try:
         areaList = addressList[area]['all']
+        if "None" in addressList[area]['all']:
+            areaList = []
+            print('No addresses in area, skipping')
     except:
         print('Unrecognized area, skipping')
         areaList = []
     try:
         deviceList = addressList[area][name]
+        if "None" in addressList[area][name]:
+            deviceList = []
+            print('No addresses for device, skipping')
     except:
         print('Unrecognized device, skipping')
         deviceList = []
+
+    completeList = allList + areaList + deviceList
+    for item in completeList:
+        if '#' in item:
+            completeList.remove(item)
     
-    return allList + areaList + deviceList
+    return completeList
 
 def deviceName(ser: serial.Serial):
     read = send_to_console(ser, "")[2:-1].split('-')
@@ -82,8 +103,7 @@ def pinginate(ser: serial.Serial, address: str):
         results = output.split('\n')[3]
         printL(results)
         if results.count('!') < 3 or not results[4] == '!':
-            #TODO: whatever the fuck is going on with this
-            #printL(' (!)')
+            printL('\t\t\t(!)')
             print()
             return 'interesting'
         else:
