@@ -1,0 +1,2 @@
+netmiko[par4]
+pyyaml
