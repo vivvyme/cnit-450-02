@@ -8,30 +8,47 @@ import time
 import os
 import netmiko
 from netmiko import ConnectHandler
+from netmiko import NetMikoAuthenticationException, NetmikoTimeoutException
 
 hostsFile = 'hosts.yaml'
 addressFile = 'addresses.yaml'
 
 def main():
+    print('Initalizing THE PINGINATOR')
+    print()
+    print('Gathering hosts...')
+
     hFile = open(os.path.dirname(os.path.abspath(__file__)) + '/' + hostsFile)
     hostList = yaml.load(hFile, Loader)
+    for item in hostList['hosts']:
+            if '#' in item:
+                hostList['hosts'].remove(item)
+
+    print('Hosts collected: ' + str(hostList['hosts'])[1:-1].replace("'", ""))
+    print()
+
     notable = {}
     for host in hostList['hosts']:
         note, area, device = doThings(host)
         print('--------------------------------------------------------------------')
         if note != 'success':
+            if area not in notable:
+                notable[area] = {}
+            if device not in notable[area]:
+                notable[area][device] = {}
             notable[area][device][host] = note
     if notable == {}:
         print('Every device contacted successfully! Woohoo!')
     else:
         print('Something went wrong somewhere!')
         print('Check in on:')
-        print(yaml.dump(notable, Dumper))
+        print(yaml.dump(notable, Dumper=Dumper))
         print()
     
 
 def doThings(host):
     try:
+        print('Contacting ' + str(host))
         port = ConnectHandler(
             device_type="cisco_ios",
             host=host,
@@ -40,9 +57,9 @@ def doThings(host):
             secret="enterprise"
             )
         port.enable()
-    except netmiko.exceptions.ReadTimeout:
+    except (NetmikoTimeoutException, NetMikoAuthenticationException):
         print('Unable to SSH into ' + host)
-        return('sshFailure', 'unknown', 'unknown')
+        return('sshFailure', 'Unknown area', 'Connection issues')
 
     #port.send_command('send * \n Hello from the pinginator!')
     
@@ -50,6 +67,7 @@ def doThings(host):
     print('Device area: ' + area)
     print('Device name: ' + name)
     list = assembleList(name, area)
+    print()
     printL('IP List: ')
     for address in list:
         printL(address + ' ')
@@ -69,6 +87,7 @@ def doThings(host):
             interestingList.append(address)
         elif check == 'success':
             continue
+    print()
     if interestingList == []:
         print(area + '-' + name + ': All addresses pinged successfully')
     else:
@@ -76,7 +95,7 @@ def doThings(host):
         for address in interestingList:
             printL(address + ' ')
         print()
-        rValue = 'Missed ping'
+        rValue = ('Missed ping on ' + str(interestingList)[1:-1].replace("'", ""))
     return(rValue, area, name)
 
 
@@ -126,7 +145,7 @@ def send_to_console(ser: ConnectHandler, command: str, wait_time: float = 0.5):
 
 def pinginate(ser: ConnectHandler, address: str):
     command = "ping " + address + "\r"
-    out = ser.send_command(command)
+    out = ser.send_command(command, read_timeout=60)
     output = ''
     #out = readAll(ser)
     output = output + out
