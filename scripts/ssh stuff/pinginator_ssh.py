@@ -145,11 +145,11 @@ def send_to_console(ser: ConnectHandler, command: str, wait_time: float = 0.5):
 
 def pinginate(ser: ConnectHandler, address: str):
     command = "ping " + address + "\r"
+    printL(address + ':\t')
     out = ser.send_command(command, read_timeout=60)
     output = ''
     #out = readAll(ser)
     output = output + out
-    printL(address + ':\t')
     #check = re.compile('#$')
     
     #while (check.match(out) == None):
@@ -161,7 +161,7 @@ def pinginate(ser: ConnectHandler, address: str):
         results = output.split('\n')[2]
         printL(results)
         if results.count('!') < 3 or not results[4] == '!':
-            printL('\t\t\t(!)')
+            printL('\t(!)')
             print()
             return 'interesting'
         else:

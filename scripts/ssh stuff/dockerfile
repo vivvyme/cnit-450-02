@@ -1,0 +1,12 @@
+FROM python:3.15
+
+
+COPY requirements.txt /
+RUN pip install -r requirements.txt
+
+COPY addresses.yaml /
+COPY hosts.yaml /
+COPY pinginator_ssh.py /
+
+
+CMD python pinginator_ssh.py
